@@ -1,0 +1,166 @@
+<!DOCTYPE html><html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSTV HYPER OFDM (Browser)</title>
+<style>
+body{font-family:Arial;background:#000;color:#0ff;text-align:center}
+canvas{width:90%;height:150px;background:#000}
+button{padding:10px;margin:5px}
+.tab{display:none}
+.active{display:block}
+</style>
+</head>
+<body>
+<h1>🚀 SSTV HYPER (Pseudo-OFDM)</h1>
+<button onclick="tab('enc')">Transmitir</button>
+<button onclick="tab('dec')">Receber</button><div id="enc" class="tab active">
+<input type="file" id="file">
+<br>
+<button onclick="encode()">Gerar Áudio</button>
+<a id="download"></a>
+</div><div id="dec" class="tab">
+<button onclick="start()">Escutar</button>
+<canvas id="spec"></canvas>
+<a id="out"></a>
+</div><script>
+function tab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(t).classList.add('active')}
+
+const SR=48000;
+const SYMBOL_TIME=0.004;
+const CARRIERS=[1000,1500,2000,2500,3000,3500]; // 6 canais paralelos
+
+function crc(d){let c=0;for(let b of d)c=(c^b)&255;return c}
+
+async function encode(){
+ const f=document.getElementById('file').files[0];
+ if(!f)return alert('arquivo');
+ const raw=new Uint8Array(await f.arrayBuffer());
+
+ const header=new TextEncoder().encode('HYP');
+ const size=new Uint32Array([raw.length]);
+ const check=crc(raw);
+
+ let full=new Uint8Array(header.length+4+raw.length+1);
+ full.set(header,0);
+ full.set(new Uint8Array(size.buffer),3);
+ full.set(raw,7);
+ full[full.length-1]=check;
+
+ let bits=[];
+ full.forEach(b=>{for(let i=7;i>=0;i--)bits.push((b>>i)&1)});
+
+ const symbols=[];
+ while(bits.length){
+  let chunk=bits.splice(0,CARRIERS.length);
+  while(chunk.length<CARRIERS.length)chunk.push(0);
+  symbols.push(chunk);
+ }
+
+ const spb=SYMBOL_TIME*SR;
+ const total=symbols.length*spb;
+
+ const ctx=new OfflineAudioContext(1,total,SR);
+ const buf=ctx.createBuffer(1,total,SR);
+ const ch=buf.getChannelData(0);
+
+ let idx=0;
+ symbols.forEach(sym=>{
+  for(let i=0;i<spb;i++){
+   let sample=0;
+   sym.forEach((bit,c)=>{
+    if(bit) sample+=Math.sin(2*Math.PI*CARRIERS[c]*(i/SR));
+   });
+   ch[idx++]=sample/sym.length;
+  }
+ });
+
+ const src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);src.start();
+ const r=await ctx.startRendering();
+
+ const wav=toWav(r.getChannelData(0));
+ const blob=new Blob([wav]);
+ const url=URL.createObjectURL(blob);
+
+ const link=document.getElementById('download');
+ link.href=url;link.download='hyper.wav';link.innerText='Baixar';
+}
+
+function toWav(s){
+ let b=new ArrayBuffer(44+s.length*2);let v=new DataView(b);
+ let w=(o,str)=>{for(let i=0;i<str.length;i++)v.setUint8(o+i,str.charCodeAt(i))};
+ w(0,'RIFF');v.setUint32(4,36+s.length*2,true);
+ w(8,'WAVE');w(12,'fmt ');
+ v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+ v.setUint32(24,SR,true);v.setUint32(28,SR*2,true);
+ v.setUint16(32,2,true);v.setUint16(34,16,true);
+ w(36,'data');v.setUint32(40,s.length*2,true);
+ let o=44;for(let x of s){v.setInt16(o,x*32767,true);o+=2}
+ return v;
+}
+
+let ctx,an,data,canvas,ctx2,bufferBits=[];
+
+async function start(){
+ const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+ ctx=new AudioContext();
+ const src=ctx.createMediaStreamSource(stream);
+ an=ctx.createAnalyser();an.fftSize=2048;
+ data=new Uint8Array(an.frequencyBinCount);
+ src.connect(an);
+
+ canvas=document.getElementById('spec');
+ ctx2=canvas.getContext('2d');
+
+ loop();
+}
+
+function loop(){
+ an.getByteFrequencyData(data);
+ ctx2.fillStyle='black';ctx2.fillRect(0,0,canvas.width,canvas.height);
+ ctx2.fillStyle='#0ff';
+
+ let freqs=[];
+ CARRIERS.forEach(f=>{
+  let bin=Math.round(f*an.fftSize/ctx.sampleRate);
+  freqs.push(data[bin]);
+ });
+
+ freqs.forEach((v,i)=>{
+  ctx2.fillRect(i*20,150-v,10,v);
+  bufferBits.push(v>100?1:0);
+ });
+
+ decode();
+ requestAnimationFrame(loop);
+}
+
+function decode(){
+ if(bufferBits.length<8)return;
+ let bytes=[];
+ for(let i=0;i<bufferBits.length;i+=8){
+  let b=0;
+  for(let j=0;j<8;j++) b=(b<<1)|(bufferBits[i+j]||0);
+  bytes.push(b);
+ }
+
+ let arr=new Uint8Array(bytes);
+ if(arr.length<10)return;
+
+ let head=new TextDecoder().decode(arr.slice(0,3));
+ if(head!=='HYP')return;
+
+ let size=new DataView(arr.buffer).getUint32(3,true);
+ if(arr.length>=size+8){
+  let file=arr.slice(7,7+size);
+  let check=arr[7+size];
+  if(crc(file)!==check)return;
+
+  let blob=new Blob([file]);
+  let url=URL.createObjectURL(blob);
+  let link=document.getElementById('out');
+  link.href=url;link.download='arquivo';link.innerText='Download';
+ }
+}
+</script></body>
+</html>
