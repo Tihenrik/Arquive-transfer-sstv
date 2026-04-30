@@ -1,166 +1,931 @@
-<!DOCTYPE html><html lang="pt-BR">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SSTV HYPER OFDM (Browser)</title>
+<title>AFSK Transfer</title>
 <style>
-body{font-family:Arial;background:#000;color:#0ff;text-align:center}
-canvas{width:90%;height:150px;background:#000}
-button{padding:10px;margin:5px}
-.tab{display:none}
-.active{display:block}
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Rajdhani:wght@300;400;600;700&display=swap');
+
+:root {
+  --bg:      #03080d;
+  --surface: #07141e;
+  --card:    #0b1c28;
+  --border:  #112233;
+  --green:   #39ff14;
+  --blue:    #00aaff;
+  --amber:   #ffaa00;
+  --red:     #ff2244;
+  --muted:   #1e3a4a;
+  --text:    #7ab8cc;
+  --bright:  #c8e8f0;
+  --gg: 0 0 10px #39ff1466, 0 0 30px #39ff1422;
+  --gb: 0 0 10px #00aaff66, 0 0 30px #00aaff22;
+  --ga: 0 0 10px #ffaa0066, 0 0 30px #ffaa0022;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 400;
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,170,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,170,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    to bottom, transparent 0, transparent 2px,
+    rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+header {
+  position: relative; z-index: 10;
+  padding: 20px 28px 0;
+  display: flex; align-items: flex-end; gap: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.brand {
+  font-family: 'VT323', monospace;
+  font-size: 36px;
+  color: var(--green);
+  text-shadow: var(--gg);
+  letter-spacing: 3px;
+  line-height: 1;
+  padding-bottom: 14px;
+}
+.brand span { color: var(--blue); text-shadow: var(--gb); }
+.subtitle {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--muted);
+  text-transform: uppercase;
+  padding-bottom: 18px;
+}
+.header-right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 10px;
+  padding-bottom: 16px;
+  font-size: 11px; letter-spacing: 1px; color: var(--muted);
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green); box-shadow: var(--gg);
+  animation: blink 1.8s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:.2} }
+.tabs {
+  position: relative; z-index: 10;
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.tab {
+  padding: 14px 24px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all .2s;
+  display: flex; align-items: center; gap: 8px;
+}
+.tab:hover { color: var(--text); }
+.tab.active-enc  { color: var(--green); border-bottom-color: var(--green); text-shadow: var(--gg); }
+.tab.active-play { color: var(--blue);  border-bottom-color: var(--blue);  text-shadow: var(--gb); }
+.tab.active-dec  { color: var(--amber); border-bottom-color: var(--amber); text-shadow: var(--ga); }
+.page { display: none; position: relative; z-index: 10; padding: 28px; }
+.page.active { display: block; }
+.sec-title {
+  font-family: 'VT323', monospace;
+  font-size: 22px;
+  letter-spacing: 3px;
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.sec-title.green { color: var(--green); text-shadow: var(--gg); }
+.sec-title.blue  { color: var(--blue);  text-shadow: var(--gb); }
+.sec-title.amber { color: var(--amber); text-shadow: var(--ga); }
+.dropzone {
+  border: 1px dashed var(--muted);
+  border-radius: 3px;
+  padding: 36px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .25s;
+  position: relative;
+  background: rgba(57,255,20,.02);
+}
+.dropzone:hover, .dropzone.over {
+  border-color: var(--green);
+  background: rgba(57,255,20,.05);
+  box-shadow: inset 0 0 30px rgba(57,255,20,.04);
+}
+.dropzone input {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0; cursor: pointer; font-size: 0;
+}
+.dz-icon { font-size: 36px; margin-bottom: 10px; pointer-events: none; }
+.dz-text { font-size: 14px; color: var(--muted); pointer-events: none; }
+.dz-text b { color: var(--green); font-weight: 600; }
+.dz-sub  { font-size: 11px; color: var(--muted); margin-top: 4px; pointer-events: none; }
+.file-badge {
+  display: none;
+  margin-top: 14px;
+  background: rgba(0,0,0,.4);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--green);
+  border-radius: 2px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+.file-badge.show { display: flex; align-items: center; gap: 10px; }
+.file-badge-name { color: var(--green); flex: 1; word-break: break-all; }
+.file-badge-size { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.settings { margin-top: 18px; }
+.srow {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+.srow label { color: var(--muted); min-width: 120px; font-weight: 600; letter-spacing: 1px; }
+.srow select {
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--bright); font-family: 'Rajdhani', sans-serif;
+  font-size: 13px; padding: 5px 10px; border-radius: 2px;
+  outline: none; cursor: pointer;
+}
+.srow select:focus { border-color: var(--blue); }
+.srow input[type=range] { flex: 1; accent-color: var(--green); }
+.srow .val { color: var(--green); font-family: 'VT323', monospace; font-size: 18px; min-width: 46px; text-align: right; }
+.btn {
+  width: 100%; padding: 13px;
+  border: none; border-radius: 2px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase;
+  cursor: pointer; transition: all .2s;
+  margin-top: 14px; display: flex;
+  align-items: center; justify-content: center; gap: 8px;
+}
+.btn:disabled { opacity: .3; cursor: not-allowed; }
+.btn-green { background: rgba(57,255,20,.08); color: var(--green); border: 1px solid var(--green); }
+.btn-green:not(:disabled):hover { background: rgba(57,255,20,.16); box-shadow: var(--gg); }
+.btn-blue  { background: rgba(0,170,255,.08);  color: var(--blue);  border: 1px solid var(--blue); }
+.btn-blue:not(:disabled):hover  { background: rgba(0,170,255,.16);  box-shadow: var(--gb); }
+.btn-amber { background: rgba(255,170,0,.08);  color: var(--amber); border: 1px solid var(--amber); }
+.btn-amber:not(:disabled):hover { background: rgba(255,170,0,.16);  box-shadow: var(--ga); }
+.btn-red   { background: rgba(255,34,68,.08);   color: var(--red);   border: 1px solid var(--red); display: none; }
+.btn-red.show { display: flex; }
+.btn-red:hover { background: rgba(255,34,68,.18); }
+.btn-sm { width: auto; padding: 7px 18px; font-size: 12px; letter-spacing: 2px; margin-top: 10px; }
+.prog-wrap { margin-top: 16px; display: none; }
+.prog-wrap.show { display: block; }
+.prog-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+.prog-label { color: var(--muted); }
+.prog-pct   { font-family: 'VT323', monospace; font-size: 18px; color: var(--green); }
+.prog-track { height: 5px; background: rgba(0,0,0,.5); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; }
+.prog-fill  { height: 100%; width: 0%; border-radius: 2px; background: var(--green); box-shadow: var(--gg); transition: width .15s; }
+.prog-wrap.amber .prog-pct  { color: var(--amber); }
+.prog-wrap.amber .prog-fill { background: var(--amber); box-shadow: var(--ga); }
+.prog-wrap.blue  .prog-pct  { color: var(--blue); }
+.prog-wrap.blue  .prog-fill { background: var(--blue); box-shadow: var(--gb); }
+.wave-wrap { margin-top: 16px; border: 1px solid var(--border); border-radius: 3px; background: #020a0f; overflow: hidden; }
+canvas { display: block; width: 100%; height: 64px; }
+.result-card { display: none; margin-top: 16px; border: 1px solid var(--green); border-radius: 3px; padding: 16px; background: rgba(57,255,20,.03); }
+.result-card.show { display: block; }
+.result-title { font-family: 'VT323', monospace; font-size: 18px; letter-spacing: 2px; color: var(--green); text-shadow: var(--gg); margin-bottom: 10px; }
+.result-title.amber { color: var(--amber); text-shadow: var(--ga); }
+.result-fname { color: var(--bright); font-size: 14px; word-break: break-all; }
+.result-fsize { color: var(--muted); font-size: 12px; margin: 3px 0 10px; }
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 2px; font-size: 11px; letter-spacing: 1px; margin-top: 6px; }
+.badge-ok   { background: rgba(57,255,20,.1);  color: var(--green); border: 1px solid rgba(57,255,20,.3); }
+.badge-fail { background: rgba(255,34,68,.1);   color: var(--red);   border: 1px solid rgba(255,34,68,.3); }
+.info-box { font-size: 13px; line-height: 1.8; padding: 14px 16px; border-radius: 3px; margin-bottom: 16px; border: 1px solid var(--border); background: rgba(0,0,0,.3); color: var(--muted); }
+.info-box b { color: var(--amber); font-weight: 700; }
+.info-box span.g { color: var(--green); }
+.info-box span.b { color: var(--blue); }
+.log-panel { margin-top: 22px; }
+.log-title { font-family: 'VT323', monospace; font-size: 18px; color: var(--blue); letter-spacing: 2px; margin-bottom: 8px; }
+.log-body { background: rgba(0,0,0,.6); border: 1px solid var(--border); border-radius: 3px; padding: 10px; height: 120px; overflow-y: auto; font-size: 12px; line-height: 1.9; }
+.log-body::-webkit-scrollbar { width: 3px; }
+.log-body::-webkit-scrollbar-thumb { background: var(--muted); }
+.ll { display: flex; gap: 8px; }
+.lt { color: var(--muted); white-space: nowrap; font-family: 'VT323', monospace; font-size: 15px; }
+.lm { color: var(--text); }
+.lm.ok   { color: var(--green); }
+.lm.warn { color: var(--amber); }
+.lm.err  { color: var(--red); }
+.lm.info { color: var(--blue); }
+.mic-level-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.mic-level-label { font-size: 12px; color: var(--muted); min-width: 70px; }
+.mic-level-bar { flex: 1; height: 8px; background: rgba(0,0,0,.5); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; }
+.mic-level-fill { height: 100%; width: 0%; border-radius: 2px; background: var(--amber); box-shadow: var(--ga); transition: width .05s; }
+.status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 11px; letter-spacing: 1px; font-weight: 700; margin-top: 10px; }
+.sp-idle   { background: rgba(30,58,74,.5);  color: var(--muted); border: 1px solid var(--border); }
+.sp-listen { background: rgba(255,170,0,.1); color: var(--amber); border: 1px solid rgba(255,170,0,.4); }
+.sp-rx     { background: rgba(57,255,20,.1); color: var(--green); border: 1px solid rgba(57,255,20,.4); }
+.sp-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: blink 1s infinite; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 680px) { .two-col { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
-<h1>🚀 SSTV HYPER (Pseudo-OFDM)</h1>
-<button onclick="tab('enc')">Transmitir</button>
-<button onclick="tab('dec')">Receber</button><div id="enc" class="tab active">
-<input type="file" id="file">
-<br>
-<button onclick="encode()">Gerar Áudio</button>
-<a id="download"></a>
-</div><div id="dec" class="tab">
-<button onclick="start()">Escutar</button>
-<canvas id="spec"></canvas>
-<a id="out"></a>
-</div><script>
-function tab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(t).classList.add('active')}
 
-const SR=48000;
-const SYMBOL_TIME=0.004;
-const CARRIERS=[1000,1500,2000,2500,3000,3500]; // 6 canais paralelos
+<header>
+  <div class="brand">AFSK<span>.</span>TRANSFER</div>
+  <div class="subtitle">Transmissão de arquivos via sinal de áudio</div>
+  <div class="header-right">
+    <div class="live-dot"></div>
+    <span>SISTEMA PRONTO</span>
+  </div>
+</header>
 
-function crc(d){let c=0;for(let b of d)c=(c^b)&255;return c}
+<div class="tabs">
+  <button class="tab active-enc" id="t0" onclick="goTab(0)">📦 CODIFICAR</button>
+  <button class="tab" id="t1" onclick="goTab(1)">🔊 REPRODUZIR / WAV</button>
+  <button class="tab" id="t2" onclick="goTab(2)">🎙 DECODIFICAR</button>
+</div>
 
-async function encode(){
- const f=document.getElementById('file').files[0];
- if(!f)return alert('arquivo');
- const raw=new Uint8Array(await f.arrayBuffer());
+<!-- ═══ TAB 0 — ENCODE ═══ -->
+<div class="page active" id="page0">
+  <div class="two-col">
+    <div>
+      <div class="sec-title green">▸ SELECIONAR ARQUIVO</div>
+      <div class="dropzone" id="dz">
+        <input type="file" id="file-input" title="">
+        <div class="dz-icon">📁</div>
+        <div class="dz-text">Arraste aqui ou <b>clique para selecionar</b></div>
+        <div class="dz-sub">Qualquer tipo de arquivo</div>
+      </div>
+      <div class="file-badge" id="file-badge">
+        <span>📄</span>
+        <span class="file-badge-name" id="fb-name"></span>
+        <span class="file-badge-size" id="fb-size"></span>
+      </div>
+      <div class="settings">
+        <div class="srow">
+          <label>Baud Rate</label>
+          <select id="baud">
+            <option value="300">300 baud — máxima robustez</option>
+            <option value="600" selected>600 baud — equilibrado</option>
+            <option value="1200">1200 baud — mais rápido</option>
+          </select>
+        </div>
+        <div class="srow">
+          <label>Volume</label>
+          <input type="range" id="vol" min="0.1" max="1.0" step="0.05" value="0.9">
+          <span class="val" id="vol-val">0.9</span>
+        </div>
+      </div>
+      <button class="btn btn-green" id="btn-encode" disabled>⚙ CODIFICAR ARQUIVO</button>
+    </div>
 
- const header=new TextEncoder().encode('HYP');
- const size=new Uint32Array([raw.length]);
- const check=crc(raw);
+    <div>
+      <div class="sec-title green">▸ RESULTADO</div>
+      <div class="prog-wrap" id="enc-prog">
+        <div class="prog-header">
+          <span class="prog-label" id="enc-prog-label">Processando...</span>
+          <span class="prog-pct" id="enc-prog-pct">0%</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="enc-prog-fill"></div></div>
+      </div>
+      <div class="wave-wrap" style="margin-top:16px;">
+        <canvas id="enc-canvas"></canvas>
+      </div>
+      <div class="result-card" id="enc-result">
+        <div class="result-title">◉ ÁUDIO GERADO</div>
+        <div id="enc-info" style="font-size:13px;color:var(--text);line-height:1.8;"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+          <button class="btn btn-blue btn-sm" id="btn-play-enc">▶ REPRODUZIR</button>
+          <button class="btn btn-green btn-sm" id="btn-save-wav-enc">⬇ SALVAR .WAV</button>
+          <button class="btn btn-amber btn-sm" id="btn-goto-play">↪ ABA REPRODUZIR</button>
+        </div>
+      </div>
+      <div class="log-panel">
+        <div class="log-title">▸ LOG</div>
+        <div class="log-body" id="log0"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
- let full=new Uint8Array(header.length+4+raw.length+1);
- full.set(header,0);
- full.set(new Uint8Array(size.buffer),3);
- full.set(raw,7);
- full[full.length-1]=check;
+<!-- ═══ TAB 1 — PLAY ═══ -->
+<div class="page" id="page1">
+  <div class="sec-title blue">▸ REPRODUZIR ÁUDIO AFSK</div>
+  <div class="info-box">
+    <b>COMO USAR:</b> Reproduza o áudio aqui e use a aba <span class="g">🎙 DECODIFICAR</span> em outro dispositivo (ou na mesma máquina com microfone ligado).<br>
+    Ou salve o <span class="b">.WAV</span> e transfira por qualquer meio — o arquivo em si <i>é</i> a transmissão.
+  </div>
+  <div id="play-empty" style="text-align:center;padding:40px;color:var(--muted);font-size:14px;">
+    Nenhum áudio gerado.<br>Vá até <b style="color:var(--green)">📦 CODIFICAR</b> e processe um arquivo primeiro.
+  </div>
+  <div id="play-content" style="display:none;">
+    <div class="two-col">
+      <div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:2;">
+          Arquivo: <b id="play-fname" style="color:var(--bright)"></b><br>
+          Duração: <b id="play-dur" style="color:var(--blue)"></b> &nbsp;·&nbsp;
+          WAV: <b id="play-wavsize" style="color:var(--blue)"></b>
+        </div>
+        <div class="srow">
+          <label>Volume</label>
+          <input type="range" id="play-vol" min="0" max="1" step="0.05" value="1">
+          <span class="val" id="play-vol-val">1.0</span>
+        </div>
+        <button class="btn btn-blue" id="btn-play-main">▶ REPRODUZIR</button>
+        <button class="btn btn-red" id="btn-stop-play">■ PARAR</button>
+        <button class="btn btn-green" id="btn-dl-wav">⬇ SALVAR .WAV</button>
+        <div class="prog-wrap show blue" id="play-prog" style="margin-top:16px;">
+          <div class="prog-header">
+            <span class="prog-label" id="play-label">Pronto para reproduzir</span>
+            <span class="prog-pct" id="play-pct">0%</span>
+          </div>
+          <div class="prog-track"><div class="prog-fill" id="play-fill"></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="wave-wrap" style="margin-top:0;">
+          <canvas id="play-canvas" style="height:120px;"></canvas>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center;letter-spacing:1px;">
+          FORMA DE ONDA AFSK — 1200 Hz (bit 0) / 2200 Hz (bit 1)
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
- let bits=[];
- full.forEach(b=>{for(let i=7;i>=0;i--)bits.push((b>>i)&1)});
+<!-- ═══ TAB 2 — DECODE ═══ -->
+<div class="page" id="page2">
+  <div class="sec-title amber">▸ DECODIFICAR VIA MICROFONE</div>
+  <div class="info-box">
+    <b>COMO USAR:</b> Clique em <span class="g">INICIAR MICROFONE</span>. Reproduza o áudio AFSK em qualquer fonte
+    (alto-falante, fone, outro dispositivo, ou a aba <span class="b">🔊 REPRODUZIR</span> nesta mesma máquina).<br>
+    O decodificador detecta o sinal automaticamente e reconstrói o arquivo. O threshold controla a sensibilidade mínima.
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="srow">
+        <label>Baud Rate</label>
+        <select id="dec-baud">
+          <option value="300">300 baud</option>
+          <option value="600" selected>600 baud</option>
+          <option value="1200">1200 baud</option>
+        </select>
+      </div>
+      <div class="srow">
+        <label>Threshold</label>
+        <input type="range" id="thresh" min="0.001" max="0.15" step="0.001" value="0.01">
+        <span class="val" id="thresh-val">0.010</span>
+      </div>
+      <button class="btn btn-amber" id="btn-mic">🎙 INICIAR MICROFONE</button>
+      <button class="btn btn-red" id="btn-stop-mic">■ PARAR MICROFONE</button>
+      <div id="mic-status" class="status-pill sp-idle">
+        <span class="sp-dot"></span> AGUARDANDO
+      </div>
+      <div class="mic-level-row">
+        <span class="mic-level-label">NÍVEL MIC</span>
+        <div class="mic-level-bar"><div class="mic-level-fill" id="mic-lvl"></div></div>
+        <span style="font-family:'VT323',monospace;font-size:16px;color:var(--amber);min-width:36px;" id="mic-lvl-val">0%</span>
+      </div>
+      <div class="prog-wrap amber show" id="dec-prog" style="margin-top:16px;">
+        <div class="prog-header">
+          <span class="prog-label" id="dec-prog-label">Aguardando sinal...</span>
+          <span class="prog-pct" id="dec-prog-pct">—</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="dec-prog-fill"></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="wave-wrap" style="margin-top:0;">
+        <canvas id="dec-canvas" style="height:120px;"></canvas>
+      </div>
+      <div class="result-card" id="dec-result" style="border-color:var(--amber);">
+        <div class="result-title amber">◉ ARQUIVO RECEBIDO</div>
+        <div class="result-fname" id="dec-fname"></div>
+        <div class="result-fsize" id="dec-fsize"></div>
+        <div id="dec-integrity"></div>
+        <button class="btn btn-green btn-sm" id="btn-dl-decoded" style="margin-top:12px;">⬇ BAIXAR ARQUIVO</button>
+      </div>
+      <div class="log-panel">
+        <div class="log-title">▸ LOG</div>
+        <div class="log-body" id="log2"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
- const symbols=[];
- while(bits.length){
-  let chunk=bits.splice(0,CARRIERS.length);
-  while(chunk.length<CARRIERS.length)chunk.push(0);
-  symbols.push(chunk);
- }
+<script>
+'use strict';
 
- const spb=SYMBOL_TIME*SR;
- const total=symbols.length*spb;
+// ═══ CONSTANTS ═══
+const F0 = 1200, F1 = 2200, SR = 44100;
 
- const ctx=new OfflineAudioContext(1,total,SR);
- const buf=ctx.createBuffer(1,total,SR);
- const ch=buf.getChannelData(0);
-
- let idx=0;
- symbols.forEach(sym=>{
-  for(let i=0;i<spb;i++){
-   let sample=0;
-   sym.forEach((bit,c)=>{
-    if(bit) sample+=Math.sin(2*Math.PI*CARRIERS[c]*(i/SR));
-   });
-   ch[idx++]=sample/sym.length;
+// ═══ CRC-32 ═══
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let j = 0; j < 8; j++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[i] = c;
   }
- });
-
- const src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);src.start();
- const r=await ctx.startRendering();
-
- const wav=toWav(r.getChannelData(0));
- const blob=new Blob([wav]);
- const url=URL.createObjectURL(blob);
-
- const link=document.getElementById('download');
- link.href=url;link.download='hyper.wav';link.innerText='Baixar';
+  return t;
+})();
+function crc32(data) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < data.length; i++) c = (c >>> 8) ^ CRC_TABLE[(c ^ data[i]) & 0xFF];
+  return (c ^ 0xFFFFFFFF) >>> 0;
 }
 
-function toWav(s){
- let b=new ArrayBuffer(44+s.length*2);let v=new DataView(b);
- let w=(o,str)=>{for(let i=0;i<str.length;i++)v.setUint8(o+i,str.charCodeAt(i))};
- w(0,'RIFF');v.setUint32(4,36+s.length*2,true);
- w(8,'WAVE');w(12,'fmt ');
- v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
- v.setUint32(24,SR,true);v.setUint32(28,SR*2,true);
- v.setUint16(32,2,true);v.setUint16(34,16,true);
- w(36,'data');v.setUint32(40,s.length*2,true);
- let o=44;for(let x of s){v.setInt16(o,x*32767,true);o+=2}
- return v;
+// ═══ PACKET BUILDER ═══
+function buildPacket(fileName, bytes) {
+  const name = new TextEncoder().encode(fileName.substring(0, 255));
+  const data = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  const chk  = crc32(data);
+  const pkt  = new Uint8Array(50 + 2 + 1 + name.length + 4 + 4 + data.length + 2);
+  let p = 0;
+  for (let i = 0; i < 50; i++) pkt[p++] = 0xAA;       // preamble
+  pkt[p++] = 0x7E; pkt[p++] = 0x7E;                    // start flags
+  pkt[p++] = name.length;                               // name length
+  for (const b of name) pkt[p++] = b;                  // name
+  pkt[p++]=(data.length>>>24)&0xFF; pkt[p++]=(data.length>>>16)&0xFF;
+  pkt[p++]=(data.length>>>8)&0xFF;  pkt[p++]=(data.length)&0xFF;  // size BE
+  pkt[p++]=(chk>>>24)&0xFF; pkt[p++]=(chk>>>16)&0xFF;
+  pkt[p++]=(chk>>>8)&0xFF;  pkt[p++]=(chk)&0xFF;        // crc BE
+  for (const b of data) pkt[p++] = b;                  // payload
+  pkt[p++] = 0x7E; pkt[p++] = 0x7E;                    // end flags
+  return pkt;
 }
 
-let ctx,an,data,canvas,ctx2,bufferBits=[];
-
-async function start(){
- const stream=await navigator.mediaDevices.getUserMedia({audio:true});
- ctx=new AudioContext();
- const src=ctx.createMediaStreamSource(stream);
- an=ctx.createAnalyser();an.fftSize=2048;
- data=new Uint8Array(an.frequencyBinCount);
- src.connect(an);
-
- canvas=document.getElementById('spec');
- ctx2=canvas.getContext('2d');
-
- loop();
+// ═══ AFSK ENCODER ═══
+function afskEncode(packet, baud, vol = 0.9) {
+  const spb = Math.round(SR / baud);
+  const pcm = new Float32Array(packet.length * 8 * spb);
+  let idx = 0, ph0 = 0, ph1 = 0;
+  const inc0 = 2 * Math.PI * F0 / SR;
+  const inc1 = 2 * Math.PI * F1 / SR;
+  for (let b = 0; b < packet.length; b++) {
+    const byte = packet[b];
+    for (let bit = 7; bit >= 0; bit--) {
+      if ((byte >> bit) & 1) {
+        for (let s = 0; s < spb; s++) {
+          pcm[idx++] = Math.sin(ph1) * vol;
+          ph1 += inc1; if (ph1 >= 2*Math.PI) ph1 -= 2*Math.PI;
+        }
+      } else {
+        for (let s = 0; s < spb; s++) {
+          pcm[idx++] = Math.sin(ph0) * vol;
+          ph0 += inc0; if (ph0 >= 2*Math.PI) ph0 -= 2*Math.PI;
+        }
+      }
+    }
+  }
+  return pcm;
 }
 
-function loop(){
- an.getByteFrequencyData(data);
- ctx2.fillStyle='black';ctx2.fillRect(0,0,canvas.width,canvas.height);
- ctx2.fillStyle='#0ff';
-
- let freqs=[];
- CARRIERS.forEach(f=>{
-  let bin=Math.round(f*an.fftSize/ctx.sampleRate);
-  freqs.push(data[bin]);
- });
-
- freqs.forEach((v,i)=>{
-  ctx2.fillRect(i*20,150-v,10,v);
-  bufferBits.push(v>100?1:0);
- });
-
- decode();
- requestAnimationFrame(loop);
+// ═══ PCM → WAV ═══
+function pcmToWav(pcm) {
+  const buf  = new ArrayBuffer(44 + pcm.length * 2);
+  const view = new DataView(buf);
+  const w4   = (o, s) => { for (let i = 0; i < 4; i++) view.setUint8(o+i, s.charCodeAt(i)); };
+  w4(0,'RIFF'); view.setUint32(4, 36+pcm.length*2, true);
+  w4(8,'WAVE'); w4(12,'fmt '); view.setUint32(16,16,true);
+  view.setUint16(20,1,true); view.setUint16(22,1,true);
+  view.setUint32(24,SR,true); view.setUint32(28,SR*2,true);
+  view.setUint16(32,2,true); view.setUint16(34,16,true);
+  w4(36,'data'); view.setUint32(40,pcm.length*2,true);
+  for (let i = 0; i < pcm.length; i++) {
+    const s = Math.max(-1,Math.min(1,pcm[i]));
+    view.setInt16(44+i*2, s<0 ? s*0x8000 : s*0x7FFF, true);
+  }
+  return new Blob([buf], {type:'audio/wav'});
 }
 
-function decode(){
- if(bufferBits.length<8)return;
- let bytes=[];
- for(let i=0;i<bufferBits.length;i+=8){
-  let b=0;
-  for(let j=0;j<8;j++) b=(b<<1)|(bufferBits[i+j]||0);
-  bytes.push(b);
- }
+// ═══ AFSK DECODER ═══
+const ST = {PREAMBLE:0, START:1, HEADER:2, DATA:3, DONE:4};
 
- let arr=new Uint8Array(bytes);
- if(arr.length<10)return;
+class AFSKDecoder {
+  constructor(baud, {onProgress, onDone, onLog}) {
+    this.baud = baud;
+    this.spb  = Math.round(SR / baud);
+    this.onP  = onProgress; this.onD = onDone; this.onL = onLog;
+    this.state = ST.PREAMBLE;
+    const N = this.spb;
+    this.N    = N;
+    this.coef0 = 2*Math.cos(2*Math.PI*Math.round(F0*N/SR)/N);
+    this.coef1 = 2*Math.cos(2*Math.PI*Math.round(F1*N/SR)/N);
+    this.sbuf  = [];   // sample buffer
+    this.bits  = [];   // bit buffer
+    this.hdr   = [];   // header bytes
+    this.dat   = [];   // data bytes
+    this.preCnt = 0; this.flagCnt = 0;
+    this.nameLen = 0; this.fileSize = 0; this.fileCRC = 0;
+    this.hdrDone = false; this.fileName = '';
+  }
 
- let head=new TextDecoder().decode(arr.slice(0,3));
- if(head!=='HYP')return;
+  goertzel(arr, off, len, coef) {
+    let s1=0, s2=0;
+    for (let i=0; i<len; i++) {
+      const s0 = arr[off+i] + coef*s1 - s2;
+      s2=s1; s1=s0;
+    }
+    return s1*s1 + s2*s2 - s1*s2*coef;
+  }
 
- let size=new DataView(arr.buffer).getUint32(3,true);
- if(arr.length>=size+8){
-  let file=arr.slice(7,7+size);
-  let check=arr[7+size];
-  if(crc(file)!==check)return;
+  feed(chunk) {
+    for (let i=0; i<chunk.length; i++) {
+      this.sbuf.push(chunk[i]);
+      if (this.sbuf.length >= this.spb) {
+        const p0 = this.goertzel(this.sbuf, 0, this.spb, this.coef0);
+        const p1 = this.goertzel(this.sbuf, 0, this.spb, this.coef1);
+        this.sbuf.splice(0, this.spb);
+        this._bit(p1 > p0 ? 1 : 0);
+        if (this.state === ST.DONE) return;
+      }
+    }
+  }
 
-  let blob=new Blob([file]);
-  let url=URL.createObjectURL(blob);
-  let link=document.getElementById('out');
-  link.href=url;link.download='arquivo';link.innerText='Download';
- }
+  _bit(b) {
+    this.bits.push(b);
+    if (this.bits.length >= 8) {
+      let byte = 0;
+      for (let i=0; i<8; i++) byte=(byte<<1)|this.bits[i];
+      this.bits.splice(0,8);
+      this._byte(byte);
+    }
+  }
+
+  _byte(b) {
+    if (this.state === ST.PREAMBLE) {
+      if (b === 0xAA) { this.preCnt++; if (this.preCnt >= 8) { this.state=ST.START; this.onL('Preâmbulo detectado','info'); } }
+      else this.preCnt=0;
+    } else if (this.state === ST.START) {
+      if (b === 0x7E) { this.flagCnt++; if (this.flagCnt >= 2) { this.state=ST.HEADER; this.onL('Início detectado — lendo cabeçalho','info'); } }
+      else if (b !== 0xAA) this.flagCnt=0;
+    } else if (this.state === ST.HEADER) {
+      this.hdr.push(b);
+      if (this.hdr.length === 1) {
+        this.nameLen = b;
+      } else if (this.hdr.length === 1 + this.nameLen + 8) {
+        this.fileName = new TextDecoder().decode(new Uint8Array(this.hdr.slice(1, 1+this.nameLen)));
+        let p = 1 + this.nameLen;
+        this.fileSize = ((this.hdr[p]<<24)|(this.hdr[p+1]<<16)|(this.hdr[p+2]<<8)|this.hdr[p+3])>>>0; p+=4;
+        this.fileCRC  = ((this.hdr[p]<<24)|(this.hdr[p+1]<<16)|(this.hdr[p+2]<<8)|this.hdr[p+3])>>>0;
+        this.state = ST.DATA;
+        this.onL(`Arquivo: "${this.fileName}" — ${fmtBytes(this.fileSize)}`,'ok');
+      }
+    } else if (this.state === ST.DATA) {
+      if (this.dat.length < this.fileSize) {
+        this.dat.push(b);
+        this.onP(Math.floor(this.dat.length/this.fileSize*100), `Recebendo ${this.dat.length}/${this.fileSize}`);
+      }
+      if (this.dat.length >= this.fileSize) {
+        const bytes = new Uint8Array(this.dat);
+        const crc   = crc32(bytes);
+        const ok    = crc === this.fileCRC;
+        this.state  = ST.DONE;
+        this.onL(`CRC-32: ${ok?'VÁLIDO ✓':'INVÁLIDO ✗'}`, ok?'ok':'err');
+        this.onD({fileName:this.fileName, bytes, ok});
+      }
+    }
+  }
 }
-</script></body>
+
+// ═══ CANVAS ═══
+function initCanvas(el) {
+  const dpr = window.devicePixelRatio || 1;
+  el.width  = (el.offsetWidth  || 400) * dpr;
+  el.height = (el.offsetHeight || 64)  * dpr;
+  return el.getContext('2d');
+}
+function drawWave(ctx, canvas, buf, color) {
+  const W=canvas.width, H=canvas.height;
+  ctx.fillStyle='#020a0f'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+  if (!buf || buf.length===0) return;
+  ctx.strokeStyle=color; ctx.lineWidth=1.5;
+  ctx.shadowColor=color; ctx.shadowBlur=4;
+  ctx.beginPath();
+  const step = Math.max(1, Math.floor(buf.length/W));
+  for (let x=0; x<W; x++) {
+    const v=buf[x*step]||0;
+    const y=H/2 - v*H*0.45;
+    x===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  }
+  ctx.stroke(); ctx.shadowBlur=0;
+}
+
+// ═══ HELPERS ═══
+function fmtBytes(n) { if(n<1024)return n+' B'; if(n<1048576)return(n/1024).toFixed(1)+' KB'; return(n/1048576).toFixed(2)+' MB'; }
+function fmtDur(s)   { if(s<60)return s.toFixed(1)+'s'; return Math.floor(s/60)+'m '+(s%60).toFixed(0)+'s'; }
+function tick()      { return new Promise(r=>setTimeout(r,0)); }
+
+function log(id, msg, type='') {
+  const el = document.getElementById(id); if (!el) return;
+  const now = new Date();
+  const t   = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  const row = document.createElement('div');
+  row.className='ll';
+  row.innerHTML=`<span class="lt">[${t}]</span><span class="lm ${type}">${msg}</span>`;
+  el.appendChild(row); el.scrollTop=el.scrollHeight;
+}
+
+// ═══ TABS ═══
+const TC = ['active-enc','active-play','active-dec'];
+function goTab(i) {
+  [0,1,2].forEach(j=>{
+    document.getElementById('t'+j).classList.remove(...TC);
+    document.getElementById('page'+j).classList.remove('active');
+  });
+  document.getElementById('t'+i).classList.add(TC[i]);
+  document.getElementById('page'+i).classList.add('active');
+}
+
+// ═══ STATE ═══
+let gFile=null, gPCM=null, gWavBlob=null, gWavUrl=null;
+let playCtx=null, playNode=null, playTimer=null;
+let micStream=null, micCtx=null, micProc=null, micDecoder=null, micRAF=null;
+let micBuf = new Float32Array(256);
+
+// ═══ CANVAS INIT ═══
+const encCanvas  = document.getElementById('enc-canvas');  const encCtx2d   = initCanvas(encCanvas);
+const playCanvas = document.getElementById('play-canvas'); const playCtx2d  = initCanvas(playCanvas);
+const decCanvas  = document.getElementById('dec-canvas');  const decCtx2d   = initCanvas(decCanvas);
+drawWave(encCtx2d,  encCanvas,  null, '#39ff14');
+drawWave(playCtx2d, playCanvas, null, '#00aaff');
+drawWave(decCtx2d,  decCanvas,  null, '#ffaa00');
+
+// ═══ FILE INPUT ═══
+document.getElementById('file-input').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return; loadFile(f);
+});
+const dz = document.getElementById('dz');
+dz.addEventListener('dragover',  e=>{ e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', ()=>dz.classList.remove('over'));
+dz.addEventListener('drop', e=>{
+  e.preventDefault(); dz.classList.remove('over');
+  const f = e.dataTransfer.files[0]; if (f) loadFile(f);
+});
+function loadFile(f) {
+  gFile=f; gPCM=null; gWavBlob=null;
+  document.getElementById('fb-name').textContent = f.name;
+  document.getElementById('fb-size').textContent = fmtBytes(f.size)+(f.type?' · '+f.type:'');
+  document.getElementById('file-badge').classList.add('show');
+  document.getElementById('btn-encode').disabled = false;
+  document.getElementById('enc-result').classList.remove('show');
+  log('log0',`Arquivo carregado: ${f.name} (${fmtBytes(f.size)})`,'ok');
+}
+
+// sliders
+document.getElementById('vol').addEventListener('input',      function(){ document.getElementById('vol-val').textContent      = parseFloat(this.value).toFixed(1); });
+document.getElementById('play-vol').addEventListener('input', function(){ document.getElementById('play-vol-val').textContent  = parseFloat(this.value).toFixed(1); });
+document.getElementById('thresh').addEventListener('input',   function(){ document.getElementById('thresh-val').textContent    = parseFloat(this.value).toFixed(3); });
+
+// ═══ ENCODE ═══
+document.getElementById('btn-encode').addEventListener('click', async () => {
+  if (!gFile) return;
+  const baud = parseInt(document.getElementById('baud').value);
+  const vol  = parseFloat(document.getElementById('vol').value);
+  document.getElementById('btn-encode').disabled = true;
+  const setP = (pct,lbl) => {
+    document.getElementById('enc-prog').classList.add('show');
+    document.getElementById('enc-prog-fill').style.width = pct+'%';
+    document.getElementById('enc-prog-pct').textContent  = pct+'%';
+    document.getElementById('enc-prog-label').textContent = lbl;
+  };
+  try {
+    setP(5,'Lendo arquivo...'); await tick();
+    log('log0',`Codificando "${gFile.name}" @ ${baud} baud`,'info');
+    const ab    = await gFile.arrayBuffer();
+    const bytes = new Uint8Array(ab);
+    setP(20,'Construindo pacote...'); await tick();
+    const pkt = buildPacket(gFile.name, bytes);
+    const dur = pkt.length*8*Math.round(SR/baud)/SR;
+    log('log0',`Pacote: ${fmtBytes(pkt.length)} | Duração estimada: ${fmtDur(dur)}`,'msg');
+    setP(35,'Sintetizando AFSK...'); await tick();
+    gPCM = afskEncode(pkt, baud, vol);
+    setP(80,'Gerando WAV...'); await tick();
+    gWavBlob = pcmToWav(gPCM);
+    if (gWavUrl) URL.revokeObjectURL(gWavUrl);
+    gWavUrl = URL.createObjectURL(gWavBlob);
+    setP(100,'Concluído!');
+
+    // draw preview
+    drawWave(encCtx2d, encCanvas, gPCM.subarray(0, Math.min(6000,gPCM.length)), '#39ff14');
+
+    const wavSz = fmtBytes(gWavBlob.size);
+    document.getElementById('enc-info').innerHTML =
+      `Original: <b style="color:var(--green)">${gFile.name}</b><br>`+
+      `Tamanho: ${fmtBytes(bytes.length)} → WAV: <b style="color:var(--blue)">${wavSz}</b><br>`+
+      `Duração: <b style="color:var(--blue)">${fmtDur(dur)}</b> @ ${baud} baud`;
+    document.getElementById('enc-result').classList.add('show');
+
+    // update play tab
+    document.getElementById('play-fname').textContent   = gFile.name;
+    document.getElementById('play-dur').textContent     = fmtDur(dur);
+    document.getElementById('play-wavsize').textContent = wavSz;
+    document.getElementById('play-empty').style.display   = 'none';
+    document.getElementById('play-content').style.display = 'block';
+    drawWave(playCtx2d, playCanvas, gPCM.subarray(0,Math.min(6000,gPCM.length)), '#00aaff');
+    log('log0',`WAV pronto: ${wavSz}`,'ok');
+  } catch(err) { log('log0','Erro: '+err.message,'err'); }
+  document.getElementById('btn-encode').disabled = false;
+});
+
+document.getElementById('btn-play-enc').addEventListener('click',    ()=>{ if(!gPCM) return; goTab(1); setTimeout(()=>document.getElementById('btn-play-main').click(),100); });
+document.getElementById('btn-save-wav-enc').addEventListener('click', saveWav);
+document.getElementById('btn-goto-play').addEventListener('click',    ()=>goTab(1));
+
+// ═══ PLAY ═══
+document.getElementById('btn-play-main').addEventListener('click', async ()=>{
+  if (!gPCM) return;
+  stopPlay();
+  playCtx = new (window.AudioContext||window.webkitAudioContext)({sampleRate:SR});
+  const ab = playCtx.createBuffer(1, gPCM.length, SR);
+  ab.copyToChannel(gPCM,0);
+  const gain = playCtx.createGain();
+  gain.gain.value = parseFloat(document.getElementById('play-vol').value);
+  playNode = playCtx.createBufferSource();
+  playNode.buffer = ab;
+  playNode.connect(gain); gain.connect(playCtx.destination);
+  const dur = gPCM.length/SR;
+  const t0  = Date.now();
+  document.getElementById('btn-play-main').disabled=true;
+  document.getElementById('btn-stop-play').classList.add('show');
+  playTimer = setInterval(()=>{
+    const el  = (Date.now()-t0)/1000;
+    const pct = Math.min(100, el/dur*100);
+    document.getElementById('play-fill').style.width = pct+'%';
+    document.getElementById('play-pct').textContent  = Math.floor(pct)+'%';
+    document.getElementById('play-label').textContent= `Reproduzindo... ${fmtDur(Math.max(0,dur-el))} restante`;
+    const pos = Math.floor(el/dur*gPCM.length);
+    drawWave(playCtx2d, playCanvas, gPCM.subarray(pos,pos+2000),'#00aaff');
+  },80);
+  playNode.onended = ()=>{
+    clearInterval(playTimer);
+    document.getElementById('play-fill').style.width = '100%';
+    document.getElementById('play-pct').textContent  = '100%';
+    document.getElementById('play-label').textContent= 'Reprodução concluída';
+    document.getElementById('btn-play-main').disabled=false;
+    document.getElementById('btn-stop-play').classList.remove('show');
+  };
+  playNode.start();
+});
+document.getElementById('btn-stop-play').addEventListener('click', stopPlay);
+document.getElementById('btn-dl-wav').addEventListener('click', saveWav);
+function stopPlay() {
+  if (playTimer) { clearInterval(playTimer); playTimer=null; }
+  if (playNode)  { try{playNode.stop();}catch(e){} playNode=null; }
+  if (playCtx)   { try{playCtx.close();}catch(e){} playCtx=null; }
+  document.getElementById('btn-play-main').disabled=false;
+  document.getElementById('btn-stop-play').classList.remove('show');
+  document.getElementById('play-label').textContent='Pronto para reproduzir';
+  document.getElementById('play-fill').style.width='0%';
+  document.getElementById('play-pct').textContent='0%';
+}
+function saveWav() {
+  if (!gWavBlob) { alert('Codifique um arquivo primeiro.'); return; }
+  const a=document.createElement('a');
+  a.href=gWavUrl;
+  a.download=(gFile?gFile.name.replace(/\.[^.]+$/,''):'afsk')+'_afsk.wav';
+  a.click();
+}
+
+// ═══ DECODE ═══
+function setMicStatus(type, text) {
+  const el=document.getElementById('mic-status');
+  el.className='status-pill sp-'+type;
+  el.innerHTML=`<span class="sp-dot"></span> ${text}`;
+}
+
+document.getElementById('btn-mic').addEventListener('click', async ()=>{
+  document.getElementById('btn-mic').disabled=true;
+  document.getElementById('btn-stop-mic').classList.add('show');
+  document.getElementById('dec-result').classList.remove('show');
+  document.getElementById('dec-prog-fill').style.width='0%';
+  document.getElementById('dec-prog-pct').textContent='—';
+  document.getElementById('dec-prog-label').textContent='Aguardando sinal...';
+  setMicStatus('listen','MICROFONE ATIVO — AGUARDANDO SINAL');
+
+  const baud   = parseInt(document.getElementById('dec-baud').value);
+  const thresh = parseFloat(document.getElementById('thresh').value);
+  log('log2','Solicitando acesso ao microfone...','info');
+
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1 }
+    });
+    micCtx = new (window.AudioContext||window.webkitAudioContext)({sampleRate:SR});
+    log('log2',`Microfone ativo | ${baud} baud | threshold: ${thresh}`,'ok');
+    log('log2','Aguardando preâmbulo AFSK...','info');
+
+    micDecoder = new AFSKDecoder(baud, {
+      onProgress:(pct,lbl)=>{
+        document.getElementById('dec-prog-fill').style.width=pct+'%';
+        document.getElementById('dec-prog-pct').textContent=pct+'%';
+        document.getElementById('dec-prog-label').textContent=lbl;
+        setMicStatus('rx','RECEBENDO DADOS...');
+      },
+      onDone:(res)=>{ stopMic(); decDone(res); },
+      onLog:(msg,type)=>log('log2',msg,type)
+    });
+
+    const src  = micCtx.createMediaStreamSource(micStream);
+    micProc    = micCtx.createScriptProcessor(2048,1,1);
+
+    micProc.onaudioprocess = e=>{
+      const data = e.inputBuffer.getChannelData(0);
+      // Level meter
+      let rms=0; for(let i=0;i<data.length;i++) rms+=data[i]*data[i];
+      rms=Math.sqrt(rms/data.length);
+      const pct=Math.min(100,Math.floor(rms/0.3*100));
+      document.getElementById('mic-lvl').style.width=pct+'%';
+      document.getElementById('mic-lvl-val').textContent=pct+'%';
+      micBuf = data.slice(0,256);
+      // Feed all samples — decoder handles sync detection internally
+      micDecoder.feed(data);
+      if (micDecoder.state===ST.DONE) stopMic();
+    };
+
+    src.connect(micProc); micProc.connect(micCtx.destination);
+
+    (function animDec() {
+      drawWave(decCtx2d,decCanvas,micBuf,'#ffaa00');
+      micRAF=requestAnimationFrame(animDec);
+    })();
+
+  } catch(err) {
+    log('log2','Erro: '+err.message,'err');
+    if (err.name==='NotAllowedError'||err.name==='PermissionDeniedError') {
+      log('log2','Permissão negada — clique no cadeado na barra de endereços e permita o microfone.','warn');
+      log('log2','Se estiver dentro do Claude.ai, o iframe bloqueia o microfone. Abra o arquivo .html diretamente no navegador.','warn');
+    } else if (err.name==='NotFoundError') {
+      log('log2','Nenhum microfone encontrado.','warn');
+    }
+    stopMic();
+  }
+});
+
+document.getElementById('btn-stop-mic').addEventListener('click',()=>{
+  stopMic(); log('log2','Microfone parado.','warn');
+});
+
+function stopMic() {
+  if (micRAF)    { cancelAnimationFrame(micRAF); micRAF=null; }
+  if (micProc)   { try{micProc.disconnect();}catch(e){} micProc=null; }
+  if (micStream) { micStream.getTracks().forEach(t=>t.stop()); micStream=null; }
+  if (micCtx)    { try{micCtx.close();}catch(e){} micCtx=null; }
+  document.getElementById('btn-mic').disabled=false;
+  document.getElementById('btn-stop-mic').classList.remove('show');
+  document.getElementById('mic-lvl').style.width='0%';
+  document.getElementById('mic-lvl-val').textContent='0%';
+  setMicStatus('idle','AGUARDANDO');
+  drawWave(decCtx2d,decCanvas,null,'#ffaa00');
+}
+
+function decDone({fileName,bytes,ok}) {
+  document.getElementById('dec-prog-fill').style.width='100%';
+  document.getElementById('dec-prog-pct').textContent='100%';
+  document.getElementById('dec-prog-label').textContent='Arquivo recebido!';
+  document.getElementById('dec-fname').textContent=fileName;
+  document.getElementById('dec-fsize').textContent=fmtBytes(bytes.length);
+  document.getElementById('dec-integrity').innerHTML = ok
+    ? '<span class="badge badge-ok">✓ CRC-32 VÁLIDO — integridade confirmada</span>'
+    : '<span class="badge badge-fail">✗ CRC-32 INVÁLIDO — arquivo pode estar corrompido</span>';
+  const url=URL.createObjectURL(new Blob([bytes]));
+  document.getElementById('btn-dl-decoded').onclick=()=>{
+    const a=document.createElement('a'); a.href=url; a.download=fileName; a.click();
+  };
+  document.getElementById('dec-result').classList.add('show');
+  setMicStatus('rx','RECEPÇÃO CONCLUÍDA');
+  log('log2',`✓ "${fileName}" — ${fmtBytes(bytes.length)}`,'ok');
+}
+
+// ═══ INIT ═══
+log('log0','Sistema pronto. Selecione um arquivo para codificar.','ok');
+log('log2','Ative o microfone e reproduza o áudio AFSK para decodificar.','info');
+</script>
+</body>
 </html>
