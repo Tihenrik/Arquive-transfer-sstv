@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SonicBeam v2 | Internet Acústica</title>
+    <title>SonicBeam v3 | Internet Acústica</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
@@ -41,8 +41,8 @@
                     <i class="ph-fill ph-waves text-2xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">SonicBeam v2</h1>
-                    <p class="text-[10px] text-cyan-500 uppercase tracking-widest font-mono">Modo: Transferência UTF-8 Pura</p>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">SonicBeam v3</h1>
+                    <p class="text-[10px] text-cyan-500 uppercase tracking-widest font-mono">Alta Confiabilidade</p>
                 </div>
             </div>
 
@@ -71,27 +71,32 @@
                     <i class="ph-fill ph-broadcast text-3xl text-cyan-400"></i>
                     <h2 class="text-lg font-semibold text-white">Transmissor</h2>
                 </div>
-                <span class="bg-cyan-900/50 text-cyan-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-cyan-800">TX Ready</span>
+                <span id="tx-status-badge" class="bg-cyan-900/50 text-cyan-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-cyan-800 transition-colors">TX Ready</span>
             </div>
             
-            <p class="text-xs text-slate-400 mb-4">Digite sua mensagem. Acentos, emojis, espaços e quebras de linha são suportados de forma nativa.</p>
+            <p class="text-xs text-slate-400 mb-4">Acentos, emojis e quebras de linha nativos (UTF-8).</p>
 
             <div class="flex-grow flex flex-col space-y-4">
-                <textarea id="tx-input" class="w-full flex-grow min-h-[150px] bg-slate-950 border border-slate-700 rounded-xl p-4 text-white font-mono text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all resize-none shadow-inner" placeholder="Ex: Olá, mundo! 🚀&#10;Esta é uma transmissão secreta..."></textarea>
+                <textarea id="tx-input" class="w-full flex-grow min-h-[150px] bg-slate-950 border border-slate-700 rounded-xl p-4 text-white font-mono text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all resize-none shadow-inner" placeholder="Ex: Olá, mundo! 🚀&#10;Teste de estabilidade."></textarea>
 
                 <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono flex justify-between text-slate-400">
                     <div>Frequência Base: <span id="lbl-base-freq" class="text-cyan-400">17.0 kHz</span></div>
                     <div>Bytes: <span id="lbl-bytes" class="text-cyan-400">0</span></div>
                 </div>
 
-                <button id="btn-transmit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(8,145,178,0.4)]">
-                    <i class="ph-fill ph-speaker-hifi text-xl"></i> Emitir Som de Dados
-                </button>
+                <div class="flex gap-2">
+                    <button id="btn-transmit" class="flex-grow bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(8,145,178,0.4)]">
+                        <i class="ph-fill ph-speaker-hifi text-xl"></i> Emitir
+                    </button>
+                    <button id="btn-stop-tx" disabled class="bg-red-600 hover:bg-red-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center shadow-lg w-16">
+                        <i class="ph-fill ph-stop text-xl"></i>
+                    </button>
+                </div>
             </div>
             
             <!-- Barra de Progresso TX -->
-            <div id="tx-progress-container" class="hidden w-full h-2 bg-slate-800 rounded-full mt-4 overflow-hidden">
-                <div id="tx-progress-bar" class="h-full bg-cyan-400 transition-all duration-75" style="width: 0%"></div>
+            <div id="tx-progress-container" class="w-full h-2 bg-slate-800 rounded-full mt-4 overflow-hidden">
+                <div id="tx-progress-bar" class="h-full bg-cyan-400 transition-all duration-[50ms] ease-linear" style="width: 0%"></div>
             </div>
         </div>
 
@@ -102,14 +107,14 @@
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
                     <div class="relative" id="rx-icon-container">
-                        <i class="ph-fill ph-ear text-3xl text-emerald-400 relative z-10"></i>
+                        <i class="ph-fill ph-ear text-3xl text-emerald-400 relative z-10 transition-colors duration-300"></i>
                     </div>
                     <h2 class="text-lg font-semibold text-white">Receptor</h2>
                 </div>
-                <span id="rx-status-badge" class="bg-slate-800 text-slate-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-slate-700">Offline</span>
+                <span id="rx-status-badge" class="bg-slate-800 text-slate-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-slate-700 transition-colors">Offline</span>
             </div>
 
-            <p class="text-xs text-slate-400 mb-4">Ative o microfone. Quando o dispositivo ouvir o padrão de dados, ele construirá o texto em tempo real.</p>
+            <p class="text-xs text-slate-400 mb-4">O áudio será analisado continuamente para evitar perdas.</p>
 
             <button id="btn-listen" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.4)] mb-4">
                 <i class="ph-fill ph-microphone text-xl"></i> Ativar Escuta
@@ -123,25 +128,24 @@
                 </div>
                 
                 <div id="rx-output" class="flex-grow text-emerald-400 text-sm overflow-y-auto whitespace-pre-wrap break-words leading-relaxed">
-                    <span class="text-slate-600 italic">Aguardando pacote de dados acústicos...</span>
+                    <span class="text-slate-600 italic">Aguardando pacote...</span>
                 </div>
             </div>
             
             <!-- Barra de Status do Protocolo -->
             <div class="mt-4 flex gap-1 justify-center h-2">
-                <div id="led-start" class="w-6 rounded bg-slate-800" title="START"></div>
-                <div id="led-data" class="w-16 rounded bg-slate-800" title="DATA"></div>
-                <div id="led-clock" class="w-6 rounded bg-slate-800" title="CLOCK"></div>
-                <div id="led-end" class="w-6 rounded bg-slate-800" title="END"></div>
+                <div id="led-start" class="w-6 rounded bg-slate-800 transition-colors duration-200" title="START"></div>
+                <div id="led-data" class="w-16 rounded bg-slate-800 transition-colors duration-100" title="DATA"></div>
+                <div id="led-clock" class="w-6 rounded bg-slate-800 transition-colors duration-100" title="CLOCK"></div>
+                <div id="led-end" class="w-6 rounded bg-slate-800 transition-colors duration-200" title="END"></div>
+            </div>
+            <div class="flex justify-between mt-1 px-4">
+                 <span class="text-[8px] text-slate-500">Qualidade do Sinal</span>
+                 <span id="rx-signal-level" class="text-[8px] text-slate-500 font-mono">0%</span>
             </div>
         </div>
 
     </main>
-
-    <footer class="text-center py-4 text-[10px] font-mono text-slate-500 bg-slate-900 border-t border-slate-800 mt-auto">
-        <p>Aviso: O Modo Ultrassônico depende da qualidade física do alto-falante e microfone do seu dispositivo.</p>
-        <p>Alguns celulares aplicam filtros (Noise Cancellation) que bloqueiam sons acima de 16kHz.</p>
-    </footer>
 
     <script>
         // --- UTILIDADES ---
@@ -154,36 +158,28 @@
             setTimeout(() => { toast.classList.add('opacity-0'); setTimeout(() => toast.remove(), 300); }, 3500);
         }
 
-        // --- CONFIGURAÇÃO DO PROTOCOLO SONICBEAM V2 ---
-        // Em vez de mapear letras, enviamos BYTES (0-255). 
-        // 1 Byte = 2 Nibbles (4 bits = valores de 0 a 15).
-        // Precisamos de 16 frequências de dados, + 1 Clock, + 1 Start, + 1 End.
+        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+        // --- CONFIGURAÇÃO DO PROTOCOLO V3 ---
+        // Aumentei o tempo dos tons para dar chance a microfones lentos processarem a FFT.
         let BANDS = {
             ultrasonic: {
-                base: 17000,
-                step: 100, // 17000 a 18500 (16 frequências)
-                clock: 18800,
-                start: 19100,
-                end: 19400,
-                threshold: 15 // Energia menor por causa da atenuação do microfone em alta freq
+                base: 17000, step: 100, clock: 18800, start: 19100, end: 19400,
+                threshold: 10 // Limiar baixo para ultrassom
             },
             audible: {
-                base: 1000,
-                step: 100, // 1000 a 2500
-                clock: 2800,
-                start: 3100,
-                end: 3400,
-                threshold: 80 // Som audível é mais forte e tem mais ruído ambiente
+                base: 1000, step: 100, clock: 2800, start: 3100, end: 3400,
+                threshold: 60 // Limiar alto para evitar ruído de fundo
             }
         };
 
-        let currentBand = BANDS.ultrasonic; // Padrão
+        let currentBand = BANDS.ultrasonic;
         
-        // Timings (Mais curtos para agilizar. Depende de uma boa placa de som)
-        const TIME_DATA = 40;  // ms por nibble
-        const TIME_CLOCK = 25; // ms de clock entre nibbles
-        const TIME_CTRL = 150; // ms para Start/End
+        // Timings aprimorados para estabilidade
+        const TIME_DATA = 70;   // ms tocando o dado
+        const TIME_CLOCK = 50;  // ms tocando o clock
+        const TIME_SILENCE = 10; // ms de silêncio obrigatório entre mudanças para evitar "borrão" sonoro
+        const TIME_CTRL = 250;  // ms para Start/End (Tem que ser longo para "acordar" o receptor)
 
         // --- INTERFACE ---
         const modeToggle = document.getElementById('mode-toggle');
@@ -205,111 +201,135 @@
         });
 
         txInput.addEventListener('input', () => {
-            const encoder = new TextEncoder();
-            lblBytes.textContent = encoder.encode(txInput.value).length;
+            lblBytes.textContent = new TextEncoder().encode(txInput.value).length;
         });
 
         // --- MÓDULO TRANSMISSOR ---
         const btnTransmit = document.getElementById('btn-transmit');
-        const txProgressContainer = document.getElementById('tx-progress-container');
+        const btnStopTx = document.getElementById('btn-stop-tx');
         const txProgressBar = document.getElementById('tx-progress-bar');
+        const txStatusBadge = document.getElementById('tx-status-badge');
         let audioCtxTx = null;
+        let isTransmitting = false;
+        let activeOscillator = null;
+
+        btnStopTx.addEventListener('click', stopTransmission);
+
+        function stopTransmission() {
+            isTransmitting = false;
+            if (activeOscillator) {
+                try { activeOscillator.stop(); } catch(e){}
+            }
+            btnTransmit.disabled = false;
+            btnTransmit.innerHTML = '<i class="ph-fill ph-speaker-hifi text-xl"></i> Emitir';
+            btnStopTx.disabled = true;
+            txInput.disabled = false;
+            txProgressBar.style.width = '0%';
+            txStatusBadge.textContent = 'TX Cancelado';
+            txStatusBadge.className = 'bg-red-900/50 text-red-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-red-800 transition-colors';
+            setTimeout(() => {
+                txStatusBadge.textContent = 'TX Ready';
+                txStatusBadge.className = 'bg-cyan-900/50 text-cyan-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-cyan-800 transition-colors';
+            }, 2000);
+        }
+
+        async function emitToneAsync(freq, durationMs) {
+            if (!isTransmitting) return;
+            
+            const osc = audioCtxTx.createOscillator();
+            const gain = audioCtxTx.createGain();
+            activeOscillator = osc;
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtxTx.currentTime);
+            
+            gain.gain.setValueAtTime(0, audioCtxTx.currentTime);
+            gain.gain.linearRampToValueAtTime(1, audioCtxTx.currentTime + 0.005);
+            gain.gain.setValueAtTime(1, audioCtxTx.currentTime + (durationMs/1000) - 0.005);
+            gain.gain.linearRampToValueAtTime(0, audioCtxTx.currentTime + (durationMs/1000));
+
+            osc.connect(gain);
+            gain.connect(audioCtxTx.destination);
+            
+            osc.start();
+            await wait(durationMs);
+            try { osc.stop(); } catch(e){}
+            await wait(TIME_SILENCE);
+        }
 
         btnTransmit.addEventListener('click', async () => {
             const text = txInput.value;
-            if (!text) return showToast('Digite uma mensagem para transmitir.', 'error');
+            if (!text) return showToast('Digite uma mensagem.', 'error');
 
             if (!audioCtxTx) audioCtxTx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtxTx.state === 'suspended') await audioCtxTx.resume();
 
+            isTransmitting = true;
             btnTransmit.disabled = true;
-            btnTransmit.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> Transmitindo...';
+            btnTransmit.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> TX...';
+            btnStopTx.disabled = false;
             txInput.disabled = true;
-            txProgressContainer.classList.remove('hidden');
             txProgressBar.style.width = '0%';
+            txStatusBadge.textContent = 'Emitindo';
+            txStatusBadge.className = 'bg-blue-900/50 text-blue-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-blue-800 animate-pulse transition-colors';
 
-            // Codificador UTF-8 nativo do navegador
-            const encoder = new TextEncoder();
-            const bytes = encoder.encode(text);
-            
-            const timeNow = audioCtxTx.currentTime + 0.1; // Começa daqui a 100ms
-            let offset = 0;
+            const bytes = new TextEncoder().encode(text);
+            const totalSteps = bytes.length * 2; // 2 nibbles per byte
+            let currentStep = 0;
 
-            // 1. Tocar Start
-            playTone(audioCtxTx, currentBand.start, timeNow + offset, TIME_CTRL);
-            offset += (TIME_CTRL + 10) / 1000;
+            try {
+                // Sincronia inicial
+                await emitToneAsync(currentBand.start, TIME_CTRL);
 
-            // 2. Transmitir Bytes
-            for (let i = 0; i < bytes.length; i++) {
-                const byte = bytes[i];
-                // Dividir 8 bits em 2 metades (Nibble Alto e Nibble Baixo)
-                const highNibble = (byte >> 4) & 0x0F;
-                const lowNibble = byte & 0x0F;
+                for (let i = 0; i < bytes.length; i++) {
+                    if (!isTransmitting) break;
 
-                const freqHigh = currentBand.base + (highNibble * currentBand.step);
-                const freqLow = currentBand.base + (lowNibble * currentBand.step);
+                    const byte = bytes[i];
+                    const highNibble = (byte >> 4) & 0x0F;
+                    const lowNibble = byte & 0x0F;
 
-                // Nibble Alto
-                playTone(audioCtxTx, freqHigh, timeNow + offset, TIME_DATA);
-                offset += TIME_DATA / 1000;
-                // Clock Tone (Avisa o receptor: "Prepare-se para o próximo dado")
-                playTone(audioCtxTx, currentBand.clock, timeNow + offset, TIME_CLOCK);
-                offset += TIME_CLOCK / 1000;
-                
-                // Nibble Baixo
-                playTone(audioCtxTx, freqLow, timeNow + offset, TIME_DATA);
-                offset += TIME_DATA / 1000;
-                // Clock Tone
-                playTone(audioCtxTx, currentBand.clock, timeNow + offset, TIME_CLOCK);
-                offset += TIME_CLOCK / 1000;
-                
-                // Animação de progresso via timeout
-                const progress = ((i + 1) / bytes.length) * 100;
-                setTimeout(() => { txProgressBar.style.width = progress + '%'; }, offset * 1000);
+                    const freqHigh = currentBand.base + (highNibble * currentBand.step);
+                    const freqLow = currentBand.base + (lowNibble * currentBand.step);
+
+                    // Envia Nibble Alto e Atualiza Progresso
+                    await emitToneAsync(freqHigh, TIME_DATA);
+                    currentStep++;
+                    txProgressBar.style.width = `${(currentStep / totalSteps) * 100}%`;
+                    
+                    if (!isTransmitting) break;
+                    await emitToneAsync(currentBand.clock, TIME_CLOCK);
+
+                    // Envia Nibble Baixo e Atualiza Progresso
+                    if (!isTransmitting) break;
+                    await emitToneAsync(freqLow, TIME_DATA);
+                    currentStep++;
+                    txProgressBar.style.width = `${(currentStep / totalSteps) * 100}%`;
+
+                    if (!isTransmitting) break;
+                    await emitToneAsync(currentBand.clock, TIME_CLOCK);
+                }
+
+                if (isTransmitting) {
+                    await emitToneAsync(currentBand.end, TIME_CTRL);
+                    stopTransmission();
+                }
+
+            } catch (err) {
+                console.error(err);
+                stopTransmission();
             }
-
-            // 3. Tocar End
-            playTone(audioCtxTx, currentBand.end, timeNow + offset, TIME_CTRL);
-            offset += TIME_CTRL / 1000;
-
-            // Finalizar
-            setTimeout(() => {
-                btnTransmit.disabled = false;
-                txInput.disabled = false;
-                btnTransmit.innerHTML = '<i class="ph-fill ph-speaker-hifi text-xl"></i> Emitir Som de Dados';
-                setTimeout(() => txProgressContainer.classList.add('hidden'), 1000);
-            }, offset * 1000);
         });
 
-        function playTone(ctx, freq, startTime, durationMs) {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            const dur = durationMs / 1000;
-            
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, startTime);
-            
-            // Envelope anti-click (Rampa suave no início e fim)
-            gain.gain.setValueAtTime(0, startTime);
-            gain.gain.linearRampToValueAtTime(1, startTime + 0.005);
-            gain.gain.setValueAtTime(1, startTime + dur - 0.005);
-            gain.gain.linearRampToValueAtTime(0, startTime + dur);
 
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            
-            osc.start(startTime);
-            osc.stop(startTime + dur);
-        }
-
-        // --- MÓDULO RECEPTOR (Máquina de Estados FDM) ---
+        // --- MÓDULO RECEPTOR ---
         const btnListen = document.getElementById('btn-listen');
         const rxIconContainer = document.getElementById('rx-icon-container');
+        const rxIcon = rxIconContainer.querySelector('i');
         const rxStatusBadge = document.getElementById('rx-status-badge');
         const rxOutput = document.getElementById('rx-output');
         const btnClear = document.getElementById('btn-clear');
+        const rxSignalLevel = document.getElementById('rx-signal-level');
         
-        // LEDs de Status
         const ledStart = document.getElementById('led-start');
         const ledData = document.getElementById('led-data');
         const ledClock = document.getElementById('led-clock');
@@ -320,22 +340,23 @@
         let isListening = false;
         let rxInterval = null;
 
-        // Variáveis de Estado
-        let rxState = 'IDLE'; // IDLE, WAIT_HIGH, WAIT_CLOCK1, WAIT_LOW, WAIT_CLOCK2
+        // Estado do Receptor
+        let rxState = 'IDLE'; 
         let currentHighNibble = null;
         let receivedBytes = [];
-        let stateTimeout = null;
+        let lastDetectedFreq = 0;
+        let consecutiveFreqCount = 0;
 
         btnClear.addEventListener('click', () => {
-            rxOutput.innerHTML = '<span class="text-slate-600 italic">Aguardando pacote de dados acústicos...</span>';
+            rxOutput.innerHTML = '<span class="text-slate-600 italic">Aguardando pacote...</span>';
             receivedBytes = [];
         });
 
         btnListen.addEventListener('click', async () => {
-            if (isListening) return stopListening();
+            if (isListening) return stopRx();
 
             try {
-                // Pedir microfone sem processamento para não estragar as altas frequências
+                // Importante: Desativar todos os processamentos que estragam os agudos
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
                 });
@@ -344,8 +365,8 @@
                 const source = audioCtxRx.createMediaStreamSource(stream);
                 
                 analyser = audioCtxRx.createAnalyser();
-                analyser.fftSize = 4096; // Boa resolução (~10Hz por bin)
-                analyser.smoothingTimeConstant = 0.1; // Reação rápida
+                analyser.fftSize = 8192; // Resolução superior (aprox 5Hz por bin)
+                analyser.smoothingTimeConstant = 0.0; // ZERO suavização para não borrar tons curtos
                 
                 source.connect(analyser);
                 
@@ -356,18 +377,19 @@
                 rxIconContainer.classList.add('radar-pulse');
                 
                 rxStatusBadge.textContent = 'Ouvindo...';
-                rxStatusBadge.className = 'bg-emerald-900/50 text-emerald-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-emerald-800 animate-pulse';
+                rxStatusBadge.className = 'bg-emerald-900/50 text-emerald-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-emerald-800 animate-pulse transition-colors';
                 
                 if(receivedBytes.length === 0) rxOutput.innerHTML = '';
+                rxState = 'IDLE';
                 
-                analyzeAudio();
+                analyzeAudioContinuous();
 
             } catch (err) {
-                showToast('Erro ao acessar o microfone. Verifique as permissões.', 'error');
+                showToast('Erro ao acessar o microfone.', 'error');
             }
         });
 
-        function stopListening() {
+        function stopRx() {
             isListening = false;
             cancelAnimationFrame(rxInterval);
             if (audioCtxRx) audioCtxRx.close();
@@ -378,14 +400,9 @@
             rxIconContainer.classList.remove('radar-pulse');
             
             rxStatusBadge.textContent = 'Offline';
-            rxStatusBadge.className = 'bg-slate-800 text-slate-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-slate-700';
+            rxStatusBadge.className = 'bg-slate-800 text-slate-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-slate-700 transition-colors';
             resetLeds();
-        }
-
-        function resetState() {
-            rxState = 'IDLE';
-            currentHighNibble = null;
-            resetLeds();
+            rxSignalLevel.textContent = '0%';
         }
 
         function resetLeds() {
@@ -393,28 +410,20 @@
             ledData.classList.replace('bg-cyan-500', 'bg-slate-800');
             ledClock.classList.replace('bg-blue-500', 'bg-slate-800');
             ledEnd.classList.replace('bg-red-500', 'bg-slate-800');
+            rxIcon.classList.replace('text-white', 'text-emerald-400');
         }
 
-        function setLed(led, colorClass) {
-            resetLeds();
-            led.classList.replace('bg-slate-800', colorClass);
-        }
-
-        function renderBuffer() {
-            // Decodifica o array de bytes recebidos para texto UTF-8
+        function updateScreen() {
             const decoder = new TextDecoder('utf-8', { fatal: false });
             const decodedText = decoder.decode(new Uint8Array(receivedBytes));
-            
-            // Renderização segura escapando HTML
             const tempDiv = document.createElement('div');
             tempDiv.textContent = decodedText;
             
-            // Adiciona o cursor de bloco piscando
             rxOutput.innerHTML = tempDiv.innerHTML + '<span class="animate-pulse bg-emerald-500 text-transparent">_</span>';
             rxOutput.scrollTop = rxOutput.scrollHeight;
         }
 
-        function analyzeAudio() {
+        function analyzeAudioContinuous() {
             if (!isListening) return;
 
             const bufferLength = analyser.frequencyBinCount;
@@ -423,9 +432,9 @@
 
             const hzPerBin = (audioCtxRx.sampleRate / 2) / bufferLength;
 
-            // Limitar a busca à região da banda atual (para não perder tempo processando graves se estiver no ultrassônico)
-            const minBin = Math.max(0, Math.floor((currentBand.base - 500) / hzPerBin));
-            const maxBin = Math.min(bufferLength - 1, Math.ceil((currentBand.end + 500) / hzPerBin));
+            // Foco na banda
+            const minBin = Math.max(0, Math.floor((currentBand.base - 200) / hzPerBin));
+            const maxBin = Math.min(bufferLength - 1, Math.ceil((currentBand.end + 200) / hzPerBin));
 
             let maxEnergy = 0;
             let peakFreq = 0;
@@ -437,70 +446,92 @@
                 }
             }
 
-            // MÁQUINA DE ESTADOS - Processa apenas se o som for alto o suficiente
+            // Atualiza nível de sinal na UI
+            const sigLevel = Math.min(100, Math.round((maxEnergy / 255) * 100));
+            rxSignalLevel.textContent = sigLevel + '%';
+
             if (maxEnergy > currentBand.threshold) {
                 
-                const TOLERANCE = 55; // Hz
+                const TOLERANCE = 45; // Margem de erro apertada
 
-                let isStart = Math.abs(peakFreq - currentBand.start) < TOLERANCE;
-                let isEnd   = Math.abs(peakFreq - currentBand.end) < TOLERANCE;
-                let isClock = Math.abs(peakFreq - currentBand.clock) < TOLERANCE;
+                // Precisamos que a mesma frequência apareça algumas vezes seguidas para ser confirmada (Filtro anti-ruído)
+                let detectedValue = null;
+                let isStart = false, isEnd = false, isClock = false;
+
+                if (Math.abs(peakFreq - currentBand.start) < TOLERANCE) isStart = true;
+                else if (Math.abs(peakFreq - currentBand.end) < TOLERANCE) isEnd = true;
+                else if (Math.abs(peakFreq - currentBand.clock) < TOLERANCE) isClock = true;
+                else {
+                    for (let i = 0; i <= 15; i++) {
+                        let expectedFreq = currentBand.base + (i * currentBand.step);
+                        if (Math.abs(peakFreq - expectedFreq) < TOLERANCE) {
+                            detectedValue = i;
+                            break;
+                        }
+                    }
+                }
+
+                // Debounce simples para garantir a frequência
+                const currentDetectType = isStart ? 'start' : isEnd ? 'end' : isClock ? 'clock' : (detectedValue !== null ? `data_${detectedValue}` : 'none');
                 
-                // Verificar se é uma frequência de DADO (Nibble 0-15)
-                let dataValue = null;
-                for (let i = 0; i <= 15; i++) {
-                    let expectedFreq = currentBand.base + (i * currentBand.step);
-                    if (Math.abs(peakFreq - expectedFreq) < TOLERANCE) {
-                        dataValue = i;
-                        break;
-                    }
+                if (currentDetectType === lastDetectedFreq) {
+                    consecutiveFreqCount++;
+                } else {
+                    lastDetectedFreq = currentDetectType;
+                    consecutiveFreqCount = 1;
                 }
 
-                // Lógica de Fluxo Contínuo
-                if (isStart) {
-                    rxState = 'WAIT_HIGH';
-                    setLed(ledStart, 'bg-emerald-500');
-                    if(receivedBytes.length > 0 && receivedBytes[receivedBytes.length-1] !== 10) {
-                        // Separar pacotes com quebra de linha visual se não houver
-                        receivedBytes.push(10); 
+                // Só processa se a frequência se manteve estável por pelo menos 2 frames do loop
+                if (consecutiveFreqCount === 2) {
+                    
+                    if (isStart && rxState === 'IDLE') {
+                        rxState = 'WAIT_HIGH';
+                        resetLeds();
+                        ledStart.classList.replace('bg-slate-800', 'bg-emerald-500');
+                        rxIcon.classList.replace('text-emerald-400', 'text-white');
+                        if(receivedBytes.length > 0) receivedBytes.push(10); // Quebra de linha visual entre pacotes
+                    } 
+                    else if (isEnd && rxState !== 'IDLE') {
+                        rxState = 'IDLE';
+                        resetLeds();
+                        ledEnd.classList.replace('bg-slate-800', 'bg-red-500');
+                        setTimeout(resetLeds, 500);
+                    } 
+                    else if (rxState === 'WAIT_HIGH' && detectedValue !== null) {
+                        currentHighNibble = detectedValue;
+                        rxState = 'WAIT_CLOCK1';
+                        resetLeds();
+                        ledData.classList.replace('bg-slate-800', 'bg-cyan-500');
+                    } 
+                    else if (rxState === 'WAIT_CLOCK1' && isClock) {
+                        rxState = 'WAIT_LOW';
+                        resetLeds();
+                        ledClock.classList.replace('bg-slate-800', 'bg-blue-500');
+                    } 
+                    else if (rxState === 'WAIT_LOW' && detectedValue !== null) {
+                        const byte = (currentHighNibble << 4) | detectedValue;
+                        receivedBytes.push(byte);
+                        updateScreen();
+                        
+                        rxState = 'WAIT_CLOCK2';
+                        resetLeds();
+                        ledData.classList.replace('bg-slate-800', 'bg-cyan-500');
+                    } 
+                    else if (rxState === 'WAIT_CLOCK2' && isClock) {
+                        rxState = 'WAIT_HIGH';
+                        resetLeds();
+                        ledClock.classList.replace('bg-slate-800', 'bg-blue-500');
                     }
-                } 
-                else if (isEnd) {
-                    rxState = 'IDLE';
-                    setLed(ledEnd, 'bg-red-500');
-                    setTimeout(resetLeds, 500);
-                } 
-                else if (rxState === 'WAIT_HIGH' && dataValue !== null) {
-                    currentHighNibble = dataValue;
-                    rxState = 'WAIT_CLOCK1';
-                    setLed(ledData, 'bg-cyan-500');
-                    
-                    clearTimeout(stateTimeout);
-                    stateTimeout = setTimeout(resetState, 500); // Timeout de segurança
-                } 
-                else if (rxState === 'WAIT_CLOCK1' && isClock) {
-                    rxState = 'WAIT_LOW';
-                    setLed(ledClock, 'bg-blue-500');
-                } 
-                else if (rxState === 'WAIT_LOW' && dataValue !== null) {
-                    // Reconstroi o byte combinando Alto e Baixo
-                    const byte = (currentHighNibble << 4) | dataValue;
-                    receivedBytes.push(byte);
-                    renderBuffer(); // Atualiza a tela em tempo real
-                    
-                    rxState = 'WAIT_CLOCK2';
-                    setLed(ledData, 'bg-cyan-500');
-                    
-                    clearTimeout(stateTimeout);
-                    stateTimeout = setTimeout(resetState, 500);
-                } 
-                else if (rxState === 'WAIT_CLOCK2' && isClock) {
-                    rxState = 'WAIT_HIGH';
-                    setLed(ledClock, 'bg-blue-500');
                 }
+            } else {
+                // Se cair o sinal, zera o contador de estabilidade
+                lastDetectedFreq = 'none';
+                consecutiveFreqCount = 0;
             }
 
-            rxInterval = requestAnimationFrame(analyzeAudio);
+            // O pulo do gato: requestAnimationFrame é amarrado aos 60fps do monitor.
+            // Para escuta ágil, setamos um timeout curto.
+            rxInterval = setTimeout(analyzeAudioContinuous, 5); // Verifica a cada 5ms (~200 vezes por segundo)
         }
     </script>
 </body>
