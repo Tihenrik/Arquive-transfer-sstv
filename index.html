@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SonicBeam v3 | Internet Acústica</title>
+    <title>SonicBeam v4.1 | Internet Acústica</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
@@ -20,73 +20,112 @@
             animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
             z-index: -1;
         }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
+        .slider-custom {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #374151;
+            border-radius: 5px;
+            outline: none;
+        }
+        .slider-custom::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #06b6d4;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+        }
         /* Custom Toggle Switch */
         .toggle-checkbox:checked { right: 0; border-color: #06b6d4; }
         .toggle-checkbox:checked + .toggle-label { background-color: #06b6d4; }
         .toggle-checkbox { right: 4px; z-index: 1; border-color: #4b5563; transition: all 0.3s; }
         .toggle-label { background-color: #374151; transition: all 0.3s; }
-        
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-slate-950 text-gray-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-white">
 
-    <!-- Header Futurista -->
-    <header class="border-b border-cyan-900/30 bg-slate-900/50 backdrop-blur-md sticky top-0 z-20 shadow-lg">
-        <div class="max-w-5xl mx-auto p-4 flex items-center justify-between">
+    <!-- Header -->
+    <header class="border-b border-cyan-900/30 bg-slate-900/80 backdrop-blur-md sticky top-0 z-20 shadow-lg">
+        <div class="max-w-6xl mx-auto p-4 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <div class="relative flex items-center justify-center w-10 h-10 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 shadow-[0_0_15px_rgba(8,145,178,0.3)]">
                     <i class="ph-fill ph-waves text-2xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">SonicBeam v3</h1>
-                    <p class="text-[10px] text-cyan-500 uppercase tracking-widest font-mono">Alta Confiabilidade</p>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">SonicBeam v4.1</h1>
+                    <p class="text-[10px] text-cyan-500 uppercase tracking-widest font-mono">Dynamic Frequency Protocol</p>
                 </div>
             </div>
 
-            <!-- Controle de Banda -->
-            <div class="flex flex-col items-end">
-                <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in mt-1">
-                    <input type="checkbox" name="toggle" id="mode-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
-                    <label for="mode-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+            <!-- Painel de Configuração Global -->
+            <div class="flex items-center gap-6 bg-slate-950 p-2 rounded-xl border border-slate-800 flex-grow md:flex-grow-0">
+                
+                <!-- Toggle de Banda Rápida -->
+                <div class="flex flex-col items-end border-r border-slate-700 pr-4">
+                    <div class="relative inline-block w-12 align-middle select-none transition duration-200 ease-in mt-1">
+                        <input type="checkbox" name="toggle" id="mode-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
+                        <label for="mode-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                    </div>
+                    <span class="text-[9px] font-medium text-cyan-400 mt-1" id="mode-label">Ultrassônico Presets</span>
                 </div>
-                <span class="text-xs font-medium text-cyan-400 mt-1" id="mode-label">Ultrassônico (Inaudível)</span>
+
+                <!-- Seletor de Estabilidade -->
+                <div class="flex flex-col">
+                    <span class="text-[10px] text-slate-400 font-mono mb-1">Estabilidade (Baud Rate)</span>
+                    <select id="sel-speed" class="bg-slate-800 text-xs text-white rounded p-1 border border-slate-700 outline-none focus:border-cyan-500 cursor-pointer">
+                        <option value="safe">Seguro (Lento - Melhor P/ Celulares)</option>
+                        <option value="fast" selected>Rápido (Padrão)</option>
+                        <option value="turbo">Turbo (Apenas PC P/ PC)</option>
+                    </select>
+                </div>
             </div>
         </div>
     </header>
 
-    <main class="flex-grow max-w-5xl mx-auto w-full p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+    <main class="flex-grow max-w-6xl mx-auto w-full p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6 relative">
         
-        <!-- Alertas -->
         <div id="toast-container" class="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2 w-full max-w-sm pointer-events-none"></div>
 
         <!-- Módulo Transmissor -->
-        <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-2xl relative overflow-hidden flex flex-col">
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-2xl relative flex flex-col">
             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-blue-600"></div>
             
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-3">
                     <i class="ph-fill ph-broadcast text-3xl text-cyan-400"></i>
-                    <h2 class="text-lg font-semibold text-white">Transmissor</h2>
+                    <h2 class="text-lg font-semibold text-white">Transmissor (TX)</h2>
                 </div>
-                <span id="tx-status-badge" class="bg-cyan-900/50 text-cyan-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-cyan-800 transition-colors">TX Ready</span>
+                <span id="tx-status-badge" class="bg-cyan-900/50 text-cyan-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-cyan-800 transition-colors">Pronto</span>
             </div>
             
-            <p class="text-xs text-slate-400 mb-4">Acentos, emojis e quebras de linha nativos (UTF-8).</p>
+            <!-- Controle Deslizante de Frequência Livre (Agora de 20 a 24000) -->
+            <div class="mb-6 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <div class="flex justify-between items-end mb-2">
+                    <label class="text-xs font-mono text-cyan-400">Frequência Base do Protocolo</label>
+                    <span id="val-freq" class="text-lg font-bold text-white font-mono">17000 Hz</span>
+                </div>
+                <input type="range" id="slider-freq" min="20" max="24000" step="50" value="17000" class="slider-custom">
+                
+                <div class="flex justify-between mt-2 text-[10px] font-mono text-slate-500">
+                    <span>20Hz</span>
+                    <span>24kHz</span>
+                </div>
+                 <!-- Aviso Dinâmico -->
+                 <p id="freq-hint" class="text-[10px] text-slate-500 mt-2 font-mono text-center">Modo Inaudível (Pode não funcionar em todos os microfones)</p>
+            </div>
 
             <div class="flex-grow flex flex-col space-y-4">
-                <textarea id="tx-input" class="w-full flex-grow min-h-[150px] bg-slate-950 border border-slate-700 rounded-xl p-4 text-white font-mono text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all resize-none shadow-inner" placeholder="Ex: Olá, mundo! 🚀&#10;Teste de estabilidade."></textarea>
-
-                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono flex justify-between text-slate-400">
-                    <div>Frequência Base: <span id="lbl-base-freq" class="text-cyan-400">17.0 kHz</span></div>
-                    <div>Bytes: <span id="lbl-bytes" class="text-cyan-400">0</span></div>
-                </div>
+                <textarea id="tx-input" class="w-full flex-grow min-h-[120px] bg-slate-950 border border-slate-700 rounded-xl p-4 text-white font-mono text-sm focus:outline-none focus:border-cyan-500 transition-all resize-none shadow-inner" placeholder="Digite aqui o que deseja transferir pelo som..."></textarea>
 
                 <div class="flex gap-2">
                     <button id="btn-transmit" class="flex-grow bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(8,145,178,0.4)]">
-                        <i class="ph-fill ph-speaker-hifi text-xl"></i> Emitir
+                        <i class="ph-fill ph-speaker-hifi text-xl"></i> Transmitir Som
                     </button>
                     <button id="btn-stop-tx" disabled class="bg-red-600 hover:bg-red-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center shadow-lg w-16">
                         <i class="ph-fill ph-stop text-xl"></i>
@@ -94,54 +133,54 @@
                 </div>
             </div>
             
-            <!-- Barra de Progresso TX -->
             <div id="tx-progress-container" class="w-full h-2 bg-slate-800 rounded-full mt-4 overflow-hidden">
-                <div id="tx-progress-bar" class="h-full bg-cyan-400 transition-all duration-[50ms] ease-linear" style="width: 0%"></div>
+                <div id="tx-progress-bar" class="h-full bg-cyan-400 transition-all duration-75" style="width: 0%"></div>
             </div>
         </div>
 
         <!-- Módulo Receptor -->
-        <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-2xl relative overflow-hidden flex flex-col">
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-2xl relative flex flex-col">
             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
             
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-3">
                     <div class="relative" id="rx-icon-container">
                         <i class="ph-fill ph-ear text-3xl text-emerald-400 relative z-10 transition-colors duration-300"></i>
                     </div>
-                    <h2 class="text-lg font-semibold text-white">Receptor</h2>
+                    <h2 class="text-lg font-semibold text-white">Receptor (RX)</h2>
                 </div>
                 <span id="rx-status-badge" class="bg-slate-800 text-slate-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-slate-700 transition-colors">Offline</span>
             </div>
 
-            <p class="text-xs text-slate-400 mb-4">O áudio será analisado continuamente para evitar perdas.</p>
+            <!-- Monitor de Espectro -->
+            <div class="bg-slate-950 rounded-xl border border-slate-800 p-3 mb-4 h-24 relative flex flex-col justify-end overflow-hidden">
+                <div class="absolute top-2 left-2 text-[9px] text-slate-500 font-mono z-10">Ruído Ambiente Auto-Squelch</div>
+                <canvas id="rx-canvas" class="w-full h-full absolute bottom-0 left-0 opacity-50"></canvas>
+                <div class="w-full flex justify-between text-[8px] text-emerald-500/50 font-mono z-10">
+                    <span id="lbl-rx-min">0Hz</span>
+                    <span id="lbl-rx-max">24000Hz</span>
+                </div>
+            </div>
 
             <button id="btn-listen" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.4)] mb-4">
-                <i class="ph-fill ph-microphone text-xl"></i> Ativar Escuta
+                <i class="ph-fill ph-microphone text-xl"></i> Ligar Sonar de Recepção
             </button>
 
-            <!-- Console de Recepção -->
+            <!-- Console -->
             <div class="flex-grow bg-slate-950 border border-slate-700 rounded-xl p-4 flex flex-col relative font-mono shadow-inner min-h-[150px]">
                 <div class="flex justify-between items-center mb-2 border-b border-slate-800 pb-2">
-                    <span class="text-[10px] text-emerald-500 uppercase">Terminal de Saída UTF-8</span>
+                    <span class="text-[10px] text-emerald-500 uppercase">Saída de Dados</span>
                     <button id="btn-clear" class="text-[10px] text-slate-500 hover:text-white transition-colors"><i class="ph ph-trash"></i> Limpar</button>
                 </div>
                 
-                <div id="rx-output" class="flex-grow text-emerald-400 text-sm overflow-y-auto whitespace-pre-wrap break-words leading-relaxed">
-                    <span class="text-slate-600 italic">Aguardando pacote...</span>
-                </div>
+                <div id="rx-output" class="flex-grow text-emerald-400 text-sm overflow-y-auto whitespace-pre-wrap break-words leading-relaxed"></div>
             </div>
             
-            <!-- Barra de Status do Protocolo -->
             <div class="mt-4 flex gap-1 justify-center h-2">
-                <div id="led-start" class="w-6 rounded bg-slate-800 transition-colors duration-200" title="START"></div>
-                <div id="led-data" class="w-16 rounded bg-slate-800 transition-colors duration-100" title="DATA"></div>
-                <div id="led-clock" class="w-6 rounded bg-slate-800 transition-colors duration-100" title="CLOCK"></div>
-                <div id="led-end" class="w-6 rounded bg-slate-800 transition-colors duration-200" title="END"></div>
-            </div>
-            <div class="flex justify-between mt-1 px-4">
-                 <span class="text-[8px] text-slate-500">Qualidade do Sinal</span>
-                 <span id="rx-signal-level" class="text-[8px] text-slate-500 font-mono">0%</span>
+                <div id="led-start" class="w-6 rounded bg-slate-800 transition-colors duration-200"></div>
+                <div id="led-data" class="w-16 rounded bg-slate-800 transition-colors duration-100"></div>
+                <div id="led-clock" class="w-6 rounded bg-slate-800 transition-colors duration-100"></div>
+                <div id="led-end" class="w-6 rounded bg-slate-800 transition-colors duration-200"></div>
             </div>
         </div>
 
@@ -149,99 +188,134 @@
 
     <script>
         // --- UTILIDADES ---
+        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.className = `${type === 'error' ? 'bg-red-500' : 'bg-blue-500'} text-white px-4 py-3 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2 pointer-events-auto mt-2`;
+            toast.className = `${type === 'error' ? 'bg-red-500' : 'bg-blue-500'} text-white px-4 py-3 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2 pointer-events-auto mt-2 transition-opacity`;
             toast.innerHTML = `<i class="ph-fill ph-info"></i> ${message}`;
             container.appendChild(toast);
-            setTimeout(() => { toast.classList.add('opacity-0'); setTimeout(() => toast.remove(), 300); }, 3500);
+            setTimeout(() => { toast.classList.add('opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
-        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        // --- SISTEMA DINÂMICO DE FREQUÊNCIAS (20 a 24000) ---
+        let baseFreqUI = 17000;
+        let hardwareMaxFreq = 24000; // Será validado ao iniciar o áudio
 
-        // --- CONFIGURAÇÃO DO PROTOCOLO V3 ---
-        // Aumentei o tempo dos tons para dar chance a microfones lentos processarem a FFT.
-        let BANDS = {
-            ultrasonic: {
-                base: 17000, step: 100, clock: 18800, start: 19100, end: 19400,
-                threshold: 10 // Limiar baixo para ultrassom
-            },
-            audible: {
-                base: 1000, step: 100, clock: 2800, start: 3100, end: 3400,
-                threshold: 60 // Limiar alto para evitar ruído de fundo
-            }
+        // Configurações de Velocidade (Estabilidade)
+        const SPEEDS = {
+            safe:  { data: 120, clock: 80, silence: 20, ctrl: 300 },
+            fast:  { data: 60,  clock: 40, silence: 10, ctrl: 200 },
+            turbo: { data: 30,  clock: 20, silence: 5,  ctrl: 100 }
         };
 
-        let currentBand = BANDS.ultrasonic;
-        
-        // Timings aprimorados para estabilidade
-        const TIME_DATA = 70;   // ms tocando o dado
-        const TIME_CLOCK = 50;  // ms tocando o clock
-        const TIME_SILENCE = 10; // ms de silêncio obrigatório entre mudanças para evitar "borrão" sonoro
-        const TIME_CTRL = 250;  // ms para Start/End (Tem que ser longo para "acordar" o receptor)
+        function getProtocol(base) {
+            // Ajusta o 'step' (espaço entre os tons de dados) dinamicamente com base na frequência base.
+            // Em frequências muito baixas, precisamos de um step menor para não estourar o limite agudo rapidamente.
+            let step = 50;
+            if (base > 5000) step = 100;
+            if (base > 15000) step = 150; 
+            
+            return {
+                base: base,
+                step: step,
+                dataFreqs: Array.from({length: 16}, (_, i) => base + (i * step)),
+                clock: base + (16 * step) + (step * 1), // Garante separação
+                start: base + (17 * step) + (step * 2),
+                end:   base + (18 * step) + (step * 3),
+                maxExpected: base + (18 * step) + (step * 3) 
+            };
+        }
 
-        // --- INTERFACE ---
+        function getAudioContext() {
+             return new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        // --- INTERFACE (Sliders e Controles) ---
+        const sliderFreq = document.getElementById('slider-freq');
+        const valFreq = document.getElementById('val-freq');
+        const selSpeed = document.getElementById('sel-speed');
         const modeToggle = document.getElementById('mode-toggle');
-        const modeLabel = document.getElementById('mode-label');
-        const lblBaseFreq = document.getElementById('lbl-base-freq');
-        const txInput = document.getElementById('tx-input');
-        const lblBytes = document.getElementById('lbl-bytes');
+        const freqHint = document.getElementById('freq-hint');
 
-        modeToggle.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                currentBand = BANDS.ultrasonic;
-                modeLabel.textContent = "Ultrassônico (Inaudível)";
-                lblBaseFreq.textContent = "17.0 kHz";
+        // Atualiza UI e Texto de Dica com base na Frequência
+        function updateFreqUI(val) {
+            baseFreqUI = parseInt(val);
+            valFreq.textContent = `${baseFreqUI} Hz`;
+            
+            if (baseFreqUI < 300) {
+                freqHint.textContent = "Graves Profundos (Subwoofer necessário)";
+                freqHint.className = "text-[10px] text-amber-500 mt-2 font-mono text-center";
+            } else if (baseFreqUI < 5000) {
+                freqHint.textContent = "Audível: Alto e Claro (Maior compatibilidade)";
+                freqHint.className = "text-[10px] text-emerald-500 mt-2 font-mono text-center";
+            } else if (baseFreqUI < 16000) {
+                freqHint.textContent = "Audível: Agudos e Zumbidos";
+                freqHint.className = "text-[10px] text-cyan-500 mt-2 font-mono text-center";
             } else {
-                currentBand = BANDS.audible;
-                modeLabel.textContent = "Audível (Padrão)";
-                lblBaseFreq.textContent = "1.0 kHz";
+                 freqHint.textContent = "Ultrassom Inaudível (Cuidado com filtros de microfone)";
+                 freqHint.className = "text-[10px] text-slate-500 mt-2 font-mono text-center";
             }
+        }
+
+        sliderFreq.addEventListener('input', (e) => {
+            updateFreqUI(e.target.value);
+            // Desmarca o toggle se o usuário mover manualmente
+            modeToggle.checked = baseFreqUI >= 17000;
         });
 
-        txInput.addEventListener('input', () => {
-            lblBytes.textContent = new TextEncoder().encode(txInput.value).length;
+        // Presets Rápidos
+        modeToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                sliderFreq.value = 17000;
+                updateFreqUI(17000);
+            } else {
+                sliderFreq.value = 1000;
+                updateFreqUI(1000);
+            }
         });
 
         // --- MÓDULO TRANSMISSOR ---
         const btnTransmit = document.getElementById('btn-transmit');
         const btnStopTx = document.getElementById('btn-stop-tx');
+        const txInput = document.getElementById('tx-input');
         const txProgressBar = document.getElementById('tx-progress-bar');
         const txStatusBadge = document.getElementById('tx-status-badge');
+        
         let audioCtxTx = null;
         let isTransmitting = false;
         let activeOscillator = null;
 
-        btnStopTx.addEventListener('click', stopTransmission);
-
-        function stopTransmission() {
+        btnStopTx.addEventListener('click', () => {
             isTransmitting = false;
-            if (activeOscillator) {
-                try { activeOscillator.stop(); } catch(e){}
-            }
+            if (activeOscillator) { try { activeOscillator.stop(); } catch(e){} }
+            resetTxUI();
+        });
+
+        function resetTxUI() {
             btnTransmit.disabled = false;
-            btnTransmit.innerHTML = '<i class="ph-fill ph-speaker-hifi text-xl"></i> Emitir';
+            btnTransmit.innerHTML = '<i class="ph-fill ph-speaker-hifi text-xl"></i> Transmitir Som';
             btnStopTx.disabled = true;
             txInput.disabled = false;
             txProgressBar.style.width = '0%';
-            txStatusBadge.textContent = 'TX Cancelado';
-            txStatusBadge.className = 'bg-red-900/50 text-red-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-red-800 transition-colors';
-            setTimeout(() => {
-                txStatusBadge.textContent = 'TX Ready';
-                txStatusBadge.className = 'bg-cyan-900/50 text-cyan-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-cyan-800 transition-colors';
-            }, 2000);
+            txStatusBadge.textContent = 'Pronto';
+            txStatusBadge.className = 'bg-cyan-900/50 text-cyan-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-cyan-800 transition-colors';
         }
 
-        async function emitToneAsync(freq, durationMs) {
+        async function emitToneAsync(targetFreq, durationMs) {
             if (!isTransmitting) return;
             
+            // Segurança: Não emitir acima do Nyquist do hardware atual, mesmo que o protocolo peça.
+            // Se o target for maior, ele "clampa" no limite seguro do contexto de áudio.
+            const nyquistLimit = hardwareMaxFreq - 100; 
+            const safeFreq = Math.min(Math.max(20, targetFreq), nyquistLimit);
+
             const osc = audioCtxTx.createOscillator();
             const gain = audioCtxTx.createGain();
             activeOscillator = osc;
 
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, audioCtxTx.currentTime);
+            try { osc.frequency.setValueAtTime(safeFreq, audioCtxTx.currentTime); } catch(e) { console.error(e); }
             
             gain.gain.setValueAtTime(0, audioCtxTx.currentTime);
             gain.gain.linearRampToValueAtTime(1, audioCtxTx.currentTime + 0.005);
@@ -254,32 +328,43 @@
             osc.start();
             await wait(durationMs);
             try { osc.stop(); } catch(e){}
-            await wait(TIME_SILENCE);
+            
+            const speedConfig = SPEEDS[selSpeed.value];
+            await wait(speedConfig.silence);
         }
 
         btnTransmit.addEventListener('click', async () => {
             const text = txInput.value;
             if (!text) return showToast('Digite uma mensagem.', 'error');
 
-            if (!audioCtxTx) audioCtxTx = new (window.AudioContext || window.webkitAudioContext)();
+            if (!audioCtxTx) {
+                audioCtxTx = getAudioContext();
+                hardwareMaxFreq = audioCtxTx.sampleRate / 2;
+            }
             if (audioCtxTx.state === 'suspended') await audioCtxTx.resume();
+
+            // Validação de segurança final antes de transmitir
+            const protocol = getProtocol(baseFreqUI);
+            if (protocol.maxExpected > hardwareMaxFreq) {
+                 showToast(`Aviso: Frequências altas serão limitadas a ${Math.floor(hardwareMaxFreq)}Hz pelo hardware.`, 'info');
+            }
 
             isTransmitting = true;
             btnTransmit.disabled = true;
-            btnTransmit.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> TX...';
+            btnTransmit.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> Emitindo...';
             btnStopTx.disabled = false;
             txInput.disabled = true;
             txProgressBar.style.width = '0%';
-            txStatusBadge.textContent = 'Emitindo';
+            txStatusBadge.textContent = 'TX Ativo';
             txStatusBadge.className = 'bg-blue-900/50 text-blue-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-blue-800 animate-pulse transition-colors';
 
             const bytes = new TextEncoder().encode(text);
-            const totalSteps = bytes.length * 2; // 2 nibbles per byte
+            const totalSteps = bytes.length * 2;
             let currentStep = 0;
+            const timings = SPEEDS[selSpeed.value];
 
             try {
-                // Sincronia inicial
-                await emitToneAsync(currentBand.start, TIME_CTRL);
+                await emitToneAsync(protocol.start, timings.ctrl);
 
                 for (let i = 0; i < bytes.length; i++) {
                     if (!isTransmitting) break;
@@ -288,38 +373,29 @@
                     const highNibble = (byte >> 4) & 0x0F;
                     const lowNibble = byte & 0x0F;
 
-                    const freqHigh = currentBand.base + (highNibble * currentBand.step);
-                    const freqLow = currentBand.base + (lowNibble * currentBand.step);
-
-                    // Envia Nibble Alto e Atualiza Progresso
-                    await emitToneAsync(freqHigh, TIME_DATA);
-                    currentStep++;
-                    txProgressBar.style.width = `${(currentStep / totalSteps) * 100}%`;
+                    await emitToneAsync(protocol.dataFreqs[highNibble], timings.data);
+                    currentStep++; txProgressBar.style.width = `${(currentStep / totalSteps) * 100}%`;
+                    if (!isTransmitting) break;
                     
+                    await emitToneAsync(protocol.clock, timings.clock);
                     if (!isTransmitting) break;
-                    await emitToneAsync(currentBand.clock, TIME_CLOCK);
 
-                    // Envia Nibble Baixo e Atualiza Progresso
+                    await emitToneAsync(protocol.dataFreqs[lowNibble], timings.data);
+                    currentStep++; txProgressBar.style.width = `${(currentStep / totalSteps) * 100}%`;
                     if (!isTransmitting) break;
-                    await emitToneAsync(freqLow, TIME_DATA);
-                    currentStep++;
-                    txProgressBar.style.width = `${(currentStep / totalSteps) * 100}%`;
-
-                    if (!isTransmitting) break;
-                    await emitToneAsync(currentBand.clock, TIME_CLOCK);
+                    
+                    await emitToneAsync(protocol.clock, timings.clock);
                 }
 
                 if (isTransmitting) {
-                    await emitToneAsync(currentBand.end, TIME_CTRL);
-                    stopTransmission();
+                    await emitToneAsync(protocol.end, timings.ctrl);
+                    resetTxUI();
                 }
-
             } catch (err) {
                 console.error(err);
-                stopTransmission();
+                resetTxUI();
             }
         });
-
 
         // --- MÓDULO RECEPTOR ---
         const btnListen = document.getElementById('btn-listen');
@@ -328,27 +404,29 @@
         const rxStatusBadge = document.getElementById('rx-status-badge');
         const rxOutput = document.getElementById('rx-output');
         const btnClear = document.getElementById('btn-clear');
-        const rxSignalLevel = document.getElementById('rx-signal-level');
         
         const ledStart = document.getElementById('led-start');
         const ledData = document.getElementById('led-data');
         const ledClock = document.getElementById('led-clock');
         const ledEnd = document.getElementById('led-end');
 
+        const rxCanvas = document.getElementById('rx-canvas');
+        const rxCtx = rxCanvas.getContext('2d');
+        const lblRxMax = document.getElementById('lbl-rx-max');
+
         let audioCtxRx = null;
         let analyser = null;
         let isListening = false;
         let rxInterval = null;
 
-        // Estado do Receptor
         let rxState = 'IDLE'; 
         let currentHighNibble = null;
         let receivedBytes = [];
-        let lastDetectedFreq = 0;
-        let consecutiveFreqCount = 0;
+        let lastDetectedLabel = null;
+        let stableCount = 0;
 
         btnClear.addEventListener('click', () => {
-            rxOutput.innerHTML = '<span class="text-slate-600 italic">Aguardando pacote...</span>';
+            rxOutput.innerHTML = '';
             receivedBytes = [];
         });
 
@@ -356,45 +434,44 @@
             if (isListening) return stopRx();
 
             try {
-                // Importante: Desativar todos os processamentos que estragam os agudos
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
                 });
                 
-                audioCtxRx = new (window.AudioContext || window.webkitAudioContext)();
+                audioCtxRx = getAudioContext();
+                hardwareMaxFreq = audioCtxRx.sampleRate / 2;
+                lblRxMax.textContent = `${Math.floor(hardwareMaxFreq)}Hz`;
+
                 const source = audioCtxRx.createMediaStreamSource(stream);
-                
                 analyser = audioCtxRx.createAnalyser();
-                analyser.fftSize = 8192; // Resolução superior (aprox 5Hz por bin)
-                analyser.smoothingTimeConstant = 0.0; // ZERO suavização para não borrar tons curtos
+                analyser.fftSize = 8192; 
+                analyser.smoothingTimeConstant = 0.0;
                 
                 source.connect(analyser);
                 
                 isListening = true;
-                btnListen.innerHTML = '<i class="ph-fill ph-stop text-xl"></i> Parar Escuta';
+                btnListen.innerHTML = '<i class="ph-fill ph-stop text-xl"></i> Desligar Sonar';
                 btnListen.classList.replace('bg-emerald-600', 'bg-red-600');
                 btnListen.classList.replace('hover:bg-emerald-500', 'hover:bg-red-500');
                 rxIconContainer.classList.add('radar-pulse');
                 
-                rxStatusBadge.textContent = 'Ouvindo...';
+                rxStatusBadge.textContent = 'Buscando Sinal';
                 rxStatusBadge.className = 'bg-emerald-900/50 text-emerald-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-emerald-800 animate-pulse transition-colors';
                 
-                if(receivedBytes.length === 0) rxOutput.innerHTML = '';
                 rxState = 'IDLE';
-                
                 analyzeAudioContinuous();
 
             } catch (err) {
-                showToast('Erro ao acessar o microfone.', 'error');
+                showToast('Erro de Microfone. Verifique as permissões.', 'error');
             }
         });
 
         function stopRx() {
             isListening = false;
-            cancelAnimationFrame(rxInterval);
+            clearTimeout(rxInterval);
             if (audioCtxRx) audioCtxRx.close();
             
-            btnListen.innerHTML = '<i class="ph-fill ph-microphone text-xl"></i> Ativar Escuta';
+            btnListen.innerHTML = '<i class="ph-fill ph-microphone text-xl"></i> Ligar Sonar de Recepção';
             btnListen.classList.replace('bg-red-600', 'bg-emerald-600');
             btnListen.classList.replace('hover:bg-red-500', 'hover:bg-emerald-500');
             rxIconContainer.classList.remove('radar-pulse');
@@ -402,7 +479,7 @@
             rxStatusBadge.textContent = 'Offline';
             rxStatusBadge.className = 'bg-slate-800 text-slate-400 text-[10px] uppercase px-2 py-1 rounded font-mono border border-slate-700 transition-colors';
             resetLeds();
-            rxSignalLevel.textContent = '0%';
+            rxCtx.clearRect(0,0, rxCanvas.width, rxCanvas.height);
         }
 
         function resetLeds() {
@@ -423,116 +500,130 @@
             rxOutput.scrollTop = rxOutput.scrollHeight;
         }
 
+        function drawSpectrum(dataArray) {
+            rxCanvas.width = rxCanvas.clientWidth;
+            rxCanvas.height = rxCanvas.clientHeight;
+            const w = rxCanvas.width;
+            const h = rxCanvas.height;
+            
+            rxCtx.clearRect(0, 0, w, h);
+            rxCtx.fillStyle = '#10b981'; 
+            
+            const step = Math.ceil(dataArray.length / w);
+            for(let i=0; i<w; i++){
+                let sum=0;
+                for(let j=0; j<step; j++) sum += dataArray[i*step + j] || 0;
+                const avg = sum/step;
+                const barH = (avg/255)*h;
+                rxCtx.fillRect(i, h-barH, 1, barH);
+            }
+        }
+
         function analyzeAudioContinuous() {
             if (!isListening) return;
 
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
             analyser.getByteFrequencyData(dataArray);
+            drawSpectrum(dataArray);
 
             const hzPerBin = (audioCtxRx.sampleRate / 2) / bufferLength;
+            const protocol = getProtocol(baseFreqUI);
 
-            // Foco na banda
-            const minBin = Math.max(0, Math.floor((currentBand.base - 200) / hzPerBin));
-            const maxBin = Math.min(bufferLength - 1, Math.ceil((currentBand.end + 200) / hzPerBin));
-
-            let maxEnergy = 0;
+            let totalEnergy = 0;
+            let peakEnergy = 0;
             let peakFreq = 0;
 
+            const minBin = Math.max(0, Math.floor((protocol.base - 500) / hzPerBin));
+            const maxBin = Math.min(bufferLength - 1, Math.ceil((protocol.maxExpected + 500) / hzPerBin));
+            const numBins = maxBin - minBin;
+
             for (let i = minBin; i <= maxBin; i++) {
-                if (dataArray[i] > maxEnergy) {
-                    maxEnergy = dataArray[i];
+                totalEnergy += dataArray[i];
+                if (dataArray[i] > peakEnergy) {
+                    peakEnergy = dataArray[i];
                     peakFreq = i * hzPerBin;
                 }
             }
 
-            // Atualiza nível de sinal na UI
-            const sigLevel = Math.min(100, Math.round((maxEnergy / 255) * 100));
-            rxSignalLevel.textContent = sigLevel + '%';
+            const noiseFloor = totalEnergy / numBins;
+            const snrThreshold = Math.max(10, noiseFloor * 2.5); 
 
-            if (maxEnergy > currentBand.threshold) {
+            if (peakEnergy > snrThreshold) {
                 
-                const TOLERANCE = 45; // Margem de erro apertada
+                const TOLERANCE = protocol.step * 0.45; 
 
-                // Precisamos que a mesma frequência apareça algumas vezes seguidas para ser confirmada (Filtro anti-ruído)
-                let detectedValue = null;
-                let isStart = false, isEnd = false, isClock = false;
+                let currentLabel = null;
+                let dataValue = null;
 
-                if (Math.abs(peakFreq - currentBand.start) < TOLERANCE) isStart = true;
-                else if (Math.abs(peakFreq - currentBand.end) < TOLERANCE) isEnd = true;
-                else if (Math.abs(peakFreq - currentBand.clock) < TOLERANCE) isClock = true;
+                if (Math.abs(peakFreq - protocol.start) < TOLERANCE) currentLabel = 'start';
+                else if (Math.abs(peakFreq - protocol.end) < TOLERANCE) currentLabel = 'end';
+                else if (Math.abs(peakFreq - protocol.clock) < TOLERANCE) currentLabel = 'clock';
                 else {
-                    for (let i = 0; i <= 15; i++) {
-                        let expectedFreq = currentBand.base + (i * currentBand.step);
-                        if (Math.abs(peakFreq - expectedFreq) < TOLERANCE) {
-                            detectedValue = i;
+                    for (let i = 0; i < 16; i++) {
+                        if (Math.abs(peakFreq - protocol.dataFreqs[i]) < TOLERANCE) {
+                            currentLabel = 'data';
+                            dataValue = i;
                             break;
                         }
                     }
                 }
 
-                // Debounce simples para garantir a frequência
-                const currentDetectType = isStart ? 'start' : isEnd ? 'end' : isClock ? 'clock' : (detectedValue !== null ? `data_${detectedValue}` : 'none');
-                
-                if (currentDetectType === lastDetectedFreq) {
-                    consecutiveFreqCount++;
-                } else {
-                    lastDetectedFreq = currentDetectType;
-                    consecutiveFreqCount = 1;
-                }
+                const speedSetting = selSpeed.value;
+                const framesRequired = speedSetting === 'safe' ? 3 : speedSetting === 'fast' ? 2 : 1;
 
-                // Só processa se a frequência se manteve estável por pelo menos 2 frames do loop
-                if (consecutiveFreqCount === 2) {
-                    
-                    if (isStart && rxState === 'IDLE') {
-                        rxState = 'WAIT_HIGH';
-                        resetLeds();
-                        ledStart.classList.replace('bg-slate-800', 'bg-emerald-500');
-                        rxIcon.classList.replace('text-emerald-400', 'text-white');
-                        if(receivedBytes.length > 0) receivedBytes.push(10); // Quebra de linha visual entre pacotes
-                    } 
-                    else if (isEnd && rxState !== 'IDLE') {
-                        rxState = 'IDLE';
-                        resetLeds();
-                        ledEnd.classList.replace('bg-slate-800', 'bg-red-500');
-                        setTimeout(resetLeds, 500);
-                    } 
-                    else if (rxState === 'WAIT_HIGH' && detectedValue !== null) {
-                        currentHighNibble = detectedValue;
-                        rxState = 'WAIT_CLOCK1';
-                        resetLeds();
-                        ledData.classList.replace('bg-slate-800', 'bg-cyan-500');
-                    } 
-                    else if (rxState === 'WAIT_CLOCK1' && isClock) {
-                        rxState = 'WAIT_LOW';
-                        resetLeds();
-                        ledClock.classList.replace('bg-slate-800', 'bg-blue-500');
-                    } 
-                    else if (rxState === 'WAIT_LOW' && detectedValue !== null) {
-                        const byte = (currentHighNibble << 4) | detectedValue;
-                        receivedBytes.push(byte);
-                        updateScreen();
-                        
-                        rxState = 'WAIT_CLOCK2';
-                        resetLeds();
-                        ledData.classList.replace('bg-slate-800', 'bg-cyan-500');
-                    } 
-                    else if (rxState === 'WAIT_CLOCK2' && isClock) {
-                        rxState = 'WAIT_HIGH';
-                        resetLeds();
-                        ledClock.classList.replace('bg-slate-800', 'bg-blue-500');
+                if (currentLabel !== null) {
+                    if (currentLabel === lastDetectedLabel) {
+                        stableCount++;
+                    } else {
+                        lastDetectedLabel = currentLabel;
+                        stableCount = 1;
+                    }
+
+                    if (stableCount === framesRequired) {
+                        if (currentLabel === 'start' && rxState === 'IDLE') {
+                            rxState = 'WAIT_HIGH';
+                            resetLeds(); ledStart.classList.replace('bg-slate-800', 'bg-emerald-500');
+                            rxIcon.classList.replace('text-emerald-400', 'text-white');
+                            if(receivedBytes.length > 0) receivedBytes.push(10);
+                        } 
+                        else if (currentLabel === 'end' && rxState !== 'IDLE') {
+                            rxState = 'IDLE';
+                            resetLeds(); ledEnd.classList.replace('bg-slate-800', 'bg-red-500');
+                            setTimeout(resetLeds, 500);
+                        } 
+                        else if (currentLabel === 'data' && rxState === 'WAIT_HIGH') {
+                            currentHighNibble = dataValue;
+                            rxState = 'WAIT_CLOCK1';
+                            resetLeds(); ledData.classList.replace('bg-slate-800', 'bg-cyan-500');
+                        } 
+                        else if (currentLabel === 'clock' && rxState === 'WAIT_CLOCK1') {
+                            rxState = 'WAIT_LOW';
+                            resetLeds(); ledClock.classList.replace('bg-slate-800', 'bg-blue-500');
+                        } 
+                        else if (currentLabel === 'data' && rxState === 'WAIT_LOW') {
+                            const byte = (currentHighNibble << 4) | dataValue;
+                            receivedBytes.push(byte);
+                            updateScreen();
+                            rxState = 'WAIT_CLOCK2';
+                            resetLeds(); ledData.classList.replace('bg-slate-800', 'bg-cyan-500');
+                        } 
+                        else if (currentLabel === 'clock' && rxState === 'WAIT_CLOCK2') {
+                            rxState = 'WAIT_HIGH';
+                            resetLeds(); ledClock.classList.replace('bg-slate-800', 'bg-blue-500');
+                        }
                     }
                 }
             } else {
-                // Se cair o sinal, zera o contador de estabilidade
-                lastDetectedFreq = 'none';
-                consecutiveFreqCount = 0;
+                lastDetectedLabel = null;
+                stableCount = 0;
             }
 
-            // O pulo do gato: requestAnimationFrame é amarrado aos 60fps do monitor.
-            // Para escuta ágil, setamos um timeout curto.
-            rxInterval = setTimeout(analyzeAudioContinuous, 5); // Verifica a cada 5ms (~200 vezes por segundo)
+            rxInterval = setTimeout(analyzeAudioContinuous, 5); 
         }
+
+        // Initialize UI values
+        updateFreqUI(sliderFreq.value);
     </script>
 </body>
 </html>
